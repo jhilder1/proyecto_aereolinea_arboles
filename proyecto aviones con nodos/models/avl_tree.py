@@ -106,6 +106,20 @@ class AVL(BST):
         self.rotations_count['single_left'] += 1
         return y
 
+    def __rotateLeftRight(self, topNode):
+        """Rotación Doble Izquierda-Derecha (LR)"""
+        self.rotate_left(topNode.get_left_child())
+        result = self.rotate_right(topNode)
+        self.rotations_count['double_left'] += 1
+        return result
+        
+    def __rotateRightLeft(self, topNode):
+        """Rotación Doble Derecha-Izquierda (RL)"""
+        self.rotate_right(topNode.get_right_child())
+        result = self.rotate_left(topNode)
+        self.rotations_count['double_right'] += 1
+        return result
+
     def insert(self, node: FlightNode):
         """
         Sobrescribe el insert de BST para aplicar balanceo AVL opcionalmente.
@@ -149,21 +163,13 @@ class AVL(BST):
             
             # Caso 3: Izquierda - Derecha (LR)
             elif balance > 1 and self.get_balance_factor(current.get_left_child()) < 0:
-                self.rotate_left(current.get_left_child())
-                current = self.rotate_right(current)
-                # Ajustamos la cuenta ya que esto cuenta como 1 rotación doble
-                self.rotations_count['single_left'] -= 1
-                self.rotations_count['single_right'] -= 1
-                self.rotations_count['double_left'] += 1
+                current = self.__rotateLeftRight(current)
             
             # Caso 4: Derecha - Izquierda (RL)
             elif balance < -1 and self.get_balance_factor(current.get_right_child()) > 0:
-                self.rotate_right(current.get_right_child())
-                current = self.rotate_left(current)
-                # Ajustamos la cuenta ya que esto cuenta como 1 rotación doble
-                self.rotations_count['single_right'] -= 1
-                self.rotations_count['single_left'] -= 1
-                self.rotations_count['double_right'] += 1
+                current = self.__rotateRightLeft(current)
                 
             current = current.get_parent()
+            
+    
 
