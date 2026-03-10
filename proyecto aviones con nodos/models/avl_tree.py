@@ -107,14 +107,12 @@ class AVL(BST):
         return y
 
     def __rotateLeftRight(self, topNode):
-        """Rotación Doble Izquierda-Derecha (LR)"""
         self.rotate_left(topNode.get_left_child())
         result = self.rotate_right(topNode)
         self.rotations_count['double_left'] += 1
         return result
         
     def __rotateRightLeft(self, topNode):
-        """Rotación Doble Derecha-Izquierda (RL)"""
         self.rotate_right(topNode.get_right_child())
         result = self.rotate_left(topNode)
         self.rotations_count['double_right'] += 1
