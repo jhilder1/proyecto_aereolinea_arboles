@@ -1,5 +1,24 @@
 import json
 import os
+from tkinter import Tk, filedialog
+
+def select_json_file():
+    """
+    Abre una ventana para que el usuario seleccione un archivo JSON.
+
+    Returns:
+        str: Ruta del archivo seleccionado o None si el usuario cancela.
+    """
+
+    root = Tk()
+    root.withdraw()  # Oculta la ventana principal de tkinter
+
+    file_path = filedialog.askopenfilename(
+        title="Seleccionar archivo JSON",
+        filetypes=[("Archivos JSON", "*.json")]
+    )
+
+    return file_path
 
 def load_json(file_path):
     """
@@ -29,21 +48,54 @@ def load_json(file_path):
 
 def validate_flight(flight):
     """
-    Valida que un objeto de vuelo tenga todos los campos requeridos.
-    
-    Args:
-        flight (dict): Objeto que representa un vuelo.
-    
-    Raises:
-        Exception: Si falta algún campo requerido.
+    Valida que un objeto de vuelo tenga todos los campos requeridos
+    y que los tipos de datos sean correctos.
     """
-    # Campos requeridos para un vuelo
-    required_fields = ["codigo", "origen", "destino", "horaSalida", "precioBase", "pasajeros", "prioridad", "promocion", "alerta"]
-    
-    # Verificar cada campo requerido
+
+    required_fields = [
+        "codigo",
+        "origen",
+        "destino",
+        "horaSalida",
+        "precioBase",
+        "pasajeros",
+        "prioridad",
+        "promocion",
+        "alerta"
+    ]
+
     for field in required_fields:
         if field not in flight:
-            raise Exception(f"Falta el campo '{field}' en el vuelo")
+            raise ValueError(f"Falta el campo '{field}' en el vuelo")
+
+    # Validar tipos básicos
+    if not isinstance(flight["codigo"], str):
+        raise ValueError("El campo 'codigo' debe ser un string")
+
+    if not isinstance(flight["origen"], str):
+        raise ValueError("El campo 'origen' debe ser un string")
+
+    if not isinstance(flight["destino"], str):
+        raise ValueError("El campo 'destino' debe ser un string")
+
+    if not isinstance(flight["horaSalida"], str):
+        raise ValueError("El campo 'horaSalida' debe ser un string")
+
+    if not isinstance(flight["precioBase"], (int, float)):
+        raise ValueError("El campo 'precioBase' debe ser numérico")
+
+    if not isinstance(flight["pasajeros"], int):
+        raise ValueError("El campo 'pasajeros' debe ser un entero")
+
+    if not isinstance(flight["prioridad"], int):
+        raise ValueError("El campo 'prioridad' debe ser un entero")
+
+    if not isinstance(flight["promocion"], bool):
+        raise ValueError("El campo 'promocion' debe ser booleano")
+
+    if not isinstance(flight["alerta"], bool):
+        raise ValueError("El campo 'alerta' debe ser booleano")
+
 
 def load_insert_json(file_path):
     """
@@ -102,5 +154,25 @@ def load_topology_json(file_path):
     
     # Aquí se podría agregar validación adicional para la estructura del árbol,
     # pero por simplicidad, asumimos que el JSON está bien formado.
-    return data
+    tree_structure = build_tree_from_json(data)
+
+    return tree_structure
+
+
+def build_tree_from_json(node_data):
+    """
+    Construye recursivamente una estructura de árbol a partir de JSON.
+    """
+
+    if node_data is None:
+        return None
+
+    node = {
+        "codigo": node_data.get("codigo"),
+        "left": build_tree_from_json(node_data.get("izquierda")),
+        "right": build_tree_from_json(node_data.get("derecha"))
+    }
+
+    return node
+
         
