@@ -32,34 +32,6 @@ class FlightController:
             node = self.create_flight_node(node_info)
             tree.root = self.build_tree_from_json(json_data)
 
-    def build_tree_from_json(self, node_data):
-        """
-        Construye recursivamente una estructura de árbol a partir de JSON.
-        """
-
-        if node_data is None:
-            return None
-
-        node = self.create_flight_node(node_data)
-        left_child_data = node_data.get("izquierda")
-        right_child_data = node_data.get("derecha")
-
-        left_child = self.build_tree_from_json(left_child_data)
-        right_child = self.build_tree_from_json(right_child_data)
-        node.set_left_child(left_child)
-        node.set_right_child(right_child)
-        
-        if left_child:
-            left_child.set_parent(node)
-
-        if right_child:
-            right_child.set_parent(node)
-
-        
-        node.height = 1 + max(
-            node.left_child.height if node.left_child else 0, 
-            node.right_child.height if node.right_child else 0
-        )
-
-        
-        return node
+    
+    
+    
