@@ -154,25 +154,10 @@ def load_topology_json(file_path):
     
     # Aquí se podría agregar validación adicional para la estructura del árbol,
     # pero por simplicidad, asumimos que el JSON está bien formado.
-    tree_structure = build_tree_from_json(data)
 
-    return tree_structure
+    return data
 
 
-def build_tree_from_json(node_data):
-    """
-    Construye recursivamente una estructura de árbol a partir de JSON.
-    """
 
-    if node_data is None:
-        return None
-
-    node = {
-        "codigo": node_data.get("codigo"),
-        "left": build_tree_from_json(node_data.get("izquierda")),
-        "right": build_tree_from_json(node_data.get("derecha"))
-    }
-
-    return node
 
         

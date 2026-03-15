@@ -67,7 +67,9 @@ class BST:
                 queue.append(current.get_right_child())
                 
         return result
-
+    
+    ##Funcion para calcular la altura del arbol
+    
     def get_height(self, node: FlightNode = None):
         """Calcula la altura máxima del árbol o de un subárbol (O(n) en BST simple)."""
         if node is None:

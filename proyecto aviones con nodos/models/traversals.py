@@ -50,13 +50,16 @@ class Traversals:
     def __preOrderTraversal(currentRoot):
         """Root - Left - Right"""
 
-        print(currentRoot.get_value())
+        result = []
+        result.append(currentRoot.get_value())
 
         if currentRoot.get_left_child() is not None:
             Traversals.__preOrderTraversal(currentRoot.get_left_child())
 
         if currentRoot.get_right_child() is not None:
             Traversals.__preOrderTraversal(currentRoot.get_right_child())
+
+        return result
 
 
     # ================================
@@ -75,14 +78,18 @@ class Traversals:
     def __inOrderTraversal(currentRoot):
         """Left - Root - Right"""
 
+        result = []
+        
+        result.append(currentRoot.get_value())
+
         if currentRoot.get_left_child() is not None:
             Traversals.__inOrderTraversal(currentRoot.get_left_child())
 
-        print(currentRoot.get_value())
 
         if currentRoot.get_right_child() is not None:
             Traversals.__inOrderTraversal(currentRoot.get_right_child())
 
+        return result
 
     # ================================
     # POST ORDER
@@ -100,10 +107,11 @@ class Traversals:
     def __posOrderTraversal(currentRoot):
         """Left - Right - Root"""
 
+        result = []
+        result.append(currentRoot.get_value())
+        
         if currentRoot.get_left_child() is not None:
             Traversals.__posOrderTraversal(currentRoot.get_left_child())
 
         if currentRoot.get_right_child() is not None:
             Traversals.__posOrderTraversal(currentRoot.get_right_child())
-
-        print(currentRoot.get_value())

@@ -1,5 +1,7 @@
 from models.node import FlightNode
 from models.bst_tree import BST
+from models.rotations import Rotations
+from models.traversals import Traversals
 
 class AVL(BST):
     """
@@ -32,91 +34,7 @@ class AVL(BST):
             node.height = 1 + max(self.get_height_node(node.get_left_child()),
                                   self.get_height_node(node.get_right_child()))
 
-    def rotate_right(self, y: FlightNode):
-        """
-        Rotación Simple a la Derecha
-            y                               x
-           / \                            /   \
-          x   T3      ----->             T1     y
-         / \                                   / \
-        T1  T2                                T2  T3
-        """
-        x = y.get_left_child()
-        T2 = x.get_right_child()
 
-        # Realizar rotación
-        x.set_right_child(y)
-        y.set_left_child(T2)
-
-        # Actualizar padres
-        x.set_parent(y.get_parent())
-        y.set_parent(x)
-        if T2:
-            T2.set_parent(y)
-
-        # Si 'y' era la raíz, 'x' pasa a ser la nueva raíz
-        if x.get_parent() is None:
-            self.root = x
-        elif x.get_parent().get_left_child() == y:
-            x.get_parent().set_left_child(x)
-        else:
-            x.get_parent().set_right_child(x)
-
-        # Actualizar alturas
-        self._update_height(y)
-        self._update_height(x)
-
-        self.rotations_count['single_right'] += 1
-        return x
-
-    def rotate_left(self, x: FlightNode):
-        """
-        Rotación Simple a la Izquierda
-          x                               y
-         / \                            /   \
-        T1  y      ----->              x     T3
-           / \                        / \
-          T2  T3                     T1  T2
-        """
-        y = x.get_right_child()
-        T2 = y.get_left_child()
-
-        # Realizar rotación
-        y.set_left_child(x)
-        x.set_right_child(T2)
-
-        # Actualizar padres
-        y.set_parent(x.get_parent())
-        x.set_parent(y)
-        if T2:
-            T2.set_parent(x)
-
-        # Si 'x' era la raíz, 'y' pasa a ser la nueva raíz
-        if y.get_parent() is None:
-            self.root = y
-        elif y.get_parent().get_left_child() == x:
-            y.get_parent().set_left_child(y)
-        else:
-            y.get_parent().set_right_child(y)
-
-        # Actualizar alturas
-        self._update_height(x)
-        self._update_height(y)
-
-        self.rotations_count['single_left'] += 1
-        return y
-
-    def __rotateLeftRight(self, topNode):
-        self.rotate_left(topNode.get_left_child())
-        result = self.rotate_right(topNode)
-        self.rotations_count['double_left'] += 1
-        return result
-        
-    def __rotateRightLeft(self, topNode):
-        self.rotate_right(topNode.get_right_child())
-        result = self.rotate_left(topNode)
-        self.rotations_count['double_right'] += 1
-        return result
 
     def insert(self, node: FlightNode):
         """
@@ -153,19 +71,19 @@ class AVL(BST):
 
             # Caso 1: Izquierda - Izquierda (LL)
             if balance > 1 and self.get_balance_factor(current.get_left_child()) >= 0:
-                current = self.rotate_right(current)
+                current = Rotations.rotate_right(self, current)
             
             # Caso 2: Derecha - Derecha (RR)
             elif balance < -1 and self.get_balance_factor(current.get_right_child()) <= 0:
-                current = self.rotate_left(current)
+                current = Rotations.rotate_left(self, current)
             
             # Caso 3: Izquierda - Derecha (LR)
             elif balance > 1 and self.get_balance_factor(current.get_left_child()) < 0:
-                current = self.__rotateLeftRight(current)
+                current = Rotations.__rotateLeftRight(self, current)
             
             # Caso 4: Derecha - Izquierda (RL)
             elif balance < -1 and self.get_balance_factor(current.get_right_child()) > 0:
-                current = self.__rotateRightLeft(current)
+                current = Rotations.__rotateRightLeft(self, current)
                 
             current = current.get_parent()
 
@@ -196,18 +114,23 @@ class AVL(BST):
 
     def delete(self, value):
         """Método para eliminar un nodo. Se deben considerar los 3 casos: no hoja, no con un hijo y nodo con 2 hijos"""
+        
         # Verificar si el árbol tiene al menos la raíz
         if self.root is None:
             print("El árbol está vacío.")
         else:
             # Buscar el nodo con el valor
             node = self.search(value)
+            parent = node.get_parent() if node else None
             # Si no se encuentra, mostrar mensaje de error
             if node is None:
                 print(f"El nodo con valor {value} no existe en el árbol")
             else:
                 # Eliminar el nodo
                 self.__delete(node)
+            # Rebalancear hacia arriba desde el padre del nodo eliminado
+            if parent:
+                self._rebalance_upwards(parent)
 
     def __delete(self, node):
         """Método para identificar el caso y eliminar el nodo"""
@@ -298,84 +221,19 @@ class AVL(BST):
         return deletionCase
 
     def breadthFirstSearch(self):
-        """Método para recorrido en anchura"""
-        if self.root is None:
-            raise Exception("El árbol está vacío.")
-        else:
-            return self.__breadthFirstSearch(self.root)
+        return Traversals.breadthFirstSearch(self.root)
 
-    def __breadthFirstSearch(self, currentRoot):
-        """Método para mostrar el recorrido en anchura. Se obtiene una lista con los valores de los nodos recorridos"""
-        # Inicializar cola y resultado
-        queue = []
-        result = []
-        queue.append(currentRoot)
-        # Mientras haya nodos en la cola
-        while len(queue) > 0:
-            # Desencolar el nodo actual
-            currentRoot = queue.pop(0)
-            # Agregar valor al resultado
-            result.append(currentRoot.get_value())
-            # Encolar hijos izquierdo y derecho si existen
-            if currentRoot.get_left_child() is not None:
-                queue.append(currentRoot.get_left_child())
-            if currentRoot.get_right_child() is not None:
-                queue.append(currentRoot.get_right_child())
-        return result
 
     def preOrderTraversal(self):
-        """Método para recorrido en profundidad pre-order"""
-        if self.root is None:
-            raise Exception("El árbol está vacío.")
-        else:
-            return self.__preOrderTraversal(self.root)
+        return Traversals.preOrderTraversal(self.root)
 
-    def __preOrderTraversal(self, currentRoot):
-        """Root - Left - Right"""
-        # Imprimir valor del nodo actual
-        print(currentRoot.get_value())
-        # Recorrer subárbol izquierdo
-        if currentRoot.get_left_child() is not None:
-            self.__preOrderTraversal(currentRoot.get_left_child())
-        # Recorrer subárbol derecho
-        if currentRoot.get_right_child() is not None:
-            self.__preOrderTraversal(currentRoot.get_right_child())
 
     def inOrderTraversal(self):
-        """Método para recorrido en profundidad in-order"""
-        if self.root is None:
-            raise Exception("El árbol está vacío.")
-        else:
-            return self.__inOrderTraversal(self.root)
+        return Traversals.inOrderTraversal(self.root)
 
-    def __inOrderTraversal(self, currentRoot):
-        """Left - Root - Right"""
-        # Recorrer subárbol izquierdo
-        if currentRoot.get_left_child() is not None:
-            self.__inOrderTraversal(currentRoot.get_left_child())
-        # Imprimir valor del nodo actual
-        print(currentRoot.get_value())
-        # Recorrer subárbol derecho
-        if currentRoot.get_right_child() is not None:
-            self.__inOrderTraversal(currentRoot.get_right_child())
 
     def posOrderTraversal(self):
-        """Método para recorrido en profundidad pos-order"""
-        if self.root is None:
-            raise Exception("El árbol está vacío.")
-        else:
-            return self.__posOrderTraversal(self.root)
-
-    def __posOrderTraversal(self, currentRoot):
-        """Left - Right - Root"""
-        # Recorrer subárbol izquierdo
-        if currentRoot.get_left_child() is not None:
-            self.__posOrderTraversal(currentRoot.get_left_child())
-        # Recorrer subárbol derecho
-        if currentRoot.get_right_child() is not None:
-            self.__posOrderTraversal(currentRoot.get_right_child())
-        # Imprimir valor del nodo actual
-        print(currentRoot.get_value())
+        return Traversals.posOrderTraversal(self.root)
 
     def calculateHeight(self, node):
         """Método para calcular la altura de un nodo"""
@@ -420,118 +278,3 @@ class AVL(BST):
             if node.get_left_child():
                 new_prefix = prefix + ("    " if is_left else "│   ")
                 self.__print_tree(node.get_left_child(), new_prefix, True)
-
-    def __checkBalance(self, node):
-        """Método que verifica el balanceo de un árbol y si está desbalanceado ejecuta el proceso de balanceo"""
-        # Obtener el padre del nodo actual
-        parentNode = node.get_parent()
-        # Si no hay padre, hemos llegado a la raíz
-        if parentNode is None:
-            return
-        # Calcular factor de balance del padre
-        bf = self.get_balance_factor(parentNode)
-        # Si está desbalanceado, rebalancear
-        if bf > 1 or bf < -1:
-            self.__rebalance(parentNode, bf)
-        # Continuar verificando hacia arriba
-        self.__checkBalance(parentNode)
-
-    def __rebalance(self, node, bf):
-        """Método para balancear el árbol, identificando la dirección del desbalanceo con positivos por izquierda y negativos por derecha"""
-        # Identificar el caso de rebalanceo
-        rebalanceCase = self.__identifyRebalanceCase(node, bf)
-        # Ejecutar la rotación correspondiente
-        if rebalanceCase == "LL":
-            self.__balanceLL(node)
-        elif rebalanceCase == "RR":
-            self.__balanceRR(node)
-        elif rebalanceCase == "LR":
-            self.__balanceLR(node)
-        elif rebalanceCase == "RL":
-            self.__balanceRL(node)
-
-    def __balanceLR(self, topNode):
-        """Método para el balanceo de tipo LR"""
-        raise Exception("No implementado")
-
-    def __balanceRL(self, topNode):
-        """Método para el balanceo de tipo RL"""
-        raise Exception("No implementado")
-
-    def __balanceLL(self, topNode):
-        """Método para el balanceo de tipo LL"""
-        # Obtener hijo izquierdo del nodo superior
-        middleNode = topNode.get_left_child()
-        # Obtener padre del nodo superior
-        topNodeParent = topNode.get_parent()
-        # Obtener hijo derecho del nodo medio
-        rightChildOfMiddle = middleNode.get_right_child()
-
-        # Realizar rotación: middleNode pasa a ser padre de topNode
-        middleNode.set_right_child(topNode)
-        topNode.set_parent(middleNode)
-        middleNode.set_parent(topNodeParent)
-
-        # Ajustar referencias del padre
-        if topNodeParent is None:
-            self.root = middleNode
-        else:
-            if topNodeParent.get_left_child() == topNode:
-                topNodeParent.set_left_child(middleNode)
-            else:
-                topNodeParent.set_right_child(middleNode)
-
-        # Reasignar hijo derecho de topNode
-        topNode.set_left_child(rightChildOfMiddle)
-        if rightChildOfMiddle is not None:
-            rightChildOfMiddle.set_parent(topNode)
-
-    def __balanceRR(self, topNode):
-        """Método para el balanceo de tipo RR"""
-        # Obtener hijo derecho del nodo superior
-        middleNode = topNode.get_right_child()
-        # Obtener padre del nodo superior
-        topNodeParent = topNode.get_parent()
-        # Obtener hijo izquierdo del nodo medio
-        leftChildOfMiddle = middleNode.get_left_child()
-
-        # Realizar rotación: middleNode pasa a ser padre de topNode
-        middleNode.set_left_child(topNode)
-        topNode.set_parent(middleNode)
-        middleNode.set_parent(topNodeParent)
-
-        # Ajustar referencias del padre
-        if topNodeParent is None:
-            self.root = middleNode
-        else:
-            if topNodeParent.get_left_child() == topNode:
-                topNodeParent.set_left_child(middleNode)
-            else:
-                topNodeParent.set_right_child(middleNode)
-
-        # Reasignar hijo izquierdo de topNode
-        topNode.set_right_child(leftChildOfMiddle)
-        if leftChildOfMiddle is not None:
-            leftChildOfMiddle.set_parent(topNode)
-
-    def __identifyRebalanceCase(self, node, bf):
-        """Método para identificar el caso de desbalanceo"""
-        rebalanceCase = ""
-        # Desbalanceo positivo (izquierda)
-        if bf > 0:
-            childBf = self.get_balance_factor(node.get_left_child())
-            if childBf > 0:
-                rebalanceCase = "LL"
-            else:
-                rebalanceCase = "LR"
-        # Desbalanceo negativo (derecha)
-        else:
-            childBf = self.get_balance_factor(node.get_right_child())
-            if childBf > 0:
-                rebalanceCase = "RL"
-            else:
-                rebalanceCase = "RR"
-        return rebalanceCase
-            
-    
-

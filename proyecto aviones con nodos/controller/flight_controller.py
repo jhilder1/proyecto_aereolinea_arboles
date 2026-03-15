@@ -1,5 +1,4 @@
 from models.node import FlightNode
-from models.avl_tree import AVL 
 
 class FlightController:
     
@@ -27,10 +26,9 @@ class FlightController:
         
     
     def load_topology_tree(self, tree, json_data):
-        """Carga la topología del árbol AVL desde un JSON."""
-        for node_info in json_data:
-            node = self.create_flight_node(node_info)
-            tree.root = self.build_tree_from_json(json_data)
+        """Carga la topología del árbol AVL desde JSON"""
+        tree.root = self.build_tree_from_json(json_data)
+
 
     def build_tree_from_json(self, node_data):
         """
@@ -57,8 +55,8 @@ class FlightController:
 
         
         node.height = 1 + max(
-            node.left_child.height if node.left_child else 0, 
-            node.right_child.height if node.right_child else 0
+            left_child.height if left_child else 0, 
+            right_child.height if right_child else 0
         )
 
         
