@@ -36,8 +36,8 @@ class FlightController:
             return None
 
         node = self.create_flight_node(node_data)
-        left_child_data = node_data.get("izquierda")
-        right_child_data = node_data.get("derecha")
+        left_child_data = node_data.get("izquierdo")
+        right_child_data = node_data.get("derecho")
 
         left_child = self.build_tree_from_json(left_child_data)
         right_child = self.build_tree_from_json(right_child_data)

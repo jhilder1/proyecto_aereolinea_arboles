@@ -130,7 +130,7 @@ def load_insert_json(file_path):
     for flight in data["vuelos"]:
         validate_flight(flight)
     
-    return data
+    return data["vuelos"]  # Retornar solo la lista de vuelos para facilitar su uso
 
 def load_topology_json(file_path):
     """
