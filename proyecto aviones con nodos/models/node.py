@@ -3,12 +3,15 @@ class FlightNode:
     Representa un vuelo dentro del sistema SkyBalance.
     Actúa como nodo tanto para el BST como para el Árbol AVL.
     """
-    def __init__(self, flight_id, base_price, passengers, promotion=0.0):
+    def __init__(self, flight_id, origin, base_price, passengers, promotion=0.0, alert=False):
         # Propiedades de Estructura de Árbol
         self.value = flight_id  # Actúa como el ID o 'Key' para ordenar
+        self.origin = origin
         self.parent = None
         self.left_child = None
         self.right_child = None
+        self.promotion = promotion
+        self.alert = alert
         
         # Propiedades AVL
         self.height = 1 # Los nodos nuevos se añaden como hojas, altura 1.

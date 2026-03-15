@@ -40,26 +40,27 @@ class Traversals:
 
     @staticmethod
     def preOrderTraversal(root):
+        results = []
         """Método para recorrido en profundidad pre-order"""
         if root is None:
             raise Exception("El árbol está vacío.")
         else:
-            return Traversals.__preOrderTraversal(root)
+            Traversals.__preOrderTraversal(root, results)
+        return results
 
     @staticmethod
-    def __preOrderTraversal(currentRoot):
+    def __preOrderTraversal(currentRoot, results):
         """Root - Left - Right"""
-
-        result = []
-        result.append(currentRoot.get_value())
+        
+        results.append(currentRoot.get_value())
 
         if currentRoot.get_left_child() is not None:
-            Traversals.__preOrderTraversal(currentRoot.get_left_child())
+            Traversals.__preOrderTraversal(currentRoot.get_left_child(), results)
 
         if currentRoot.get_right_child() is not None:
-            Traversals.__preOrderTraversal(currentRoot.get_right_child())
+            Traversals.__preOrderTraversal(currentRoot.get_right_child(), results)
 
-        return result
+        return results
 
 
     # ================================
@@ -68,28 +69,29 @@ class Traversals:
 
     @staticmethod
     def inOrderTraversal(root):
+        results = []
         """Método para recorrido en profundidad in-order"""
         if root is None:
             raise Exception("El árbol está vacío.")
         else:
-            return Traversals.__inOrderTraversal(root)
+            Traversals.__inOrderTraversal(root, results)
+        return results
 
     @staticmethod
-    def __inOrderTraversal(currentRoot):
+    def __inOrderTraversal(currentRoot, results):
         """Left - Root - Right"""
 
-        result = []
         
-        result.append(currentRoot.get_value())
 
         if currentRoot.get_left_child() is not None:
-            Traversals.__inOrderTraversal(currentRoot.get_left_child())
-
+            Traversals.__inOrderTraversal(currentRoot.get_left_child(), results)
+        
+        results.append(currentRoot.get_value())
 
         if currentRoot.get_right_child() is not None:
-            Traversals.__inOrderTraversal(currentRoot.get_right_child())
+            Traversals.__inOrderTraversal(currentRoot.get_right_child(), results)
 
-        return result
+        return results
 
     # ================================
     # POST ORDER
@@ -97,21 +99,24 @@ class Traversals:
 
     @staticmethod
     def posOrderTraversal(root):
+        results = []
         """Método para recorrido en profundidad pos-order"""
         if root is None:
             raise Exception("El árbol está vacío.")
         else:
-            return Traversals.__posOrderTraversal(root)
+            Traversals.__posOrderTraversal(root, results)
+        return results
 
     @staticmethod
-    def __posOrderTraversal(currentRoot):
+    def __posOrderTraversal(currentRoot, results):
         """Left - Right - Root"""
 
-        result = []
-        result.append(currentRoot.get_value())
         
         if currentRoot.get_left_child() is not None:
-            Traversals.__posOrderTraversal(currentRoot.get_left_child())
+            Traversals.__posOrderTraversal(currentRoot.get_left_child(), results)
 
         if currentRoot.get_right_child() is not None:
-            Traversals.__posOrderTraversal(currentRoot.get_right_child())
+            Traversals.__posOrderTraversal(currentRoot.get_right_child(), results)
+            
+        results.append(currentRoot.get_value())
+        return results
