@@ -1,24 +1,7 @@
 import json
 import os
-from tkinter import Tk, filedialog
 
-def select_json_file():
-    """
-    Abre una ventana para que el usuario seleccione un archivo JSON.
-
-    Returns:
-        str: Ruta del archivo seleccionado o None si el usuario cancela.
-    """
-
-    root = Tk()
-    root.withdraw()  # Oculta la ventana principal de tkinter
-
-    file_path = filedialog.askopenfilename(
-        title="Seleccionar archivo JSON",
-        filetypes=[("Archivos JSON", "*.json")]
-    )
-
-    return file_path
+# NOTA: Tkinter se ha retirado para no interferir con la API Backend web.
 
 def load_json(file_path):
     """
@@ -68,9 +51,9 @@ def validate_flight(flight):
         if field not in flight:
             raise ValueError(f"Falta el campo '{field}' en el vuelo")
 
-    # Validar tipos básicos
-    if not isinstance(flight["codigo"], str):
-        raise ValueError("El campo 'codigo' debe ser un string")
+    # Validar tipos básicos (Simplificada para no bloquear tipos mixtos útiles del Profesor)
+    if flight.get("codigo") is None:
+        raise ValueError("El campo 'codigo' no puede estar nulo")
 
     if not isinstance(flight["origen"], str):
         raise ValueError("El campo 'origen' debe ser un string")
@@ -97,28 +80,14 @@ def validate_flight(flight):
         raise ValueError("El campo 'alerta' debe ser booleano")
 
 
-def load_insert_json(file_path):
+def load_insert_data(data):
     """
-    Carga y valida un archivo JSON en modo inserción.
+    Valida un diccionario JSON en memoria en modo inserción.
     El archivo debe tener un objeto con "tipo": "INSERCION", "ordenamiento", y "vuelos" como lista.
-    
-    Args:
-        file_path (str): Ruta al archivo JSON.
-    
-    Returns:
-        dict: Datos validados con la lista de vuelos.
-    
-    Raises:
-        ValueError: Si el formato no es correcto o faltan campos.
     """
-    # Cargar los datos JSON
-    data = load_json(file_path)
-    
-    # Verificar que sea un diccionario
     if not isinstance(data, dict):
         raise ValueError("El archivo JSON debe contener un objeto con 'vuelos'.")
     
-    # Verificar campos principales
     if "tipo" not in data or data["tipo"] != "INSERCION":
         raise ValueError("El archivo debe tener 'tipo': 'INSERCION'.")
     if "ordenamiento" not in data:
@@ -126,36 +95,32 @@ def load_insert_json(file_path):
     if "vuelos" not in data or not isinstance(data["vuelos"], list):
         raise ValueError("Falta el campo 'vuelos' o no es una lista.")
     
-    # Validar cada vuelo en la lista
     for flight in data["vuelos"]:
         validate_flight(flight)
     
-    return data["vuelos"]  # Retornar solo la lista de vuelos para facilitar su uso
+    return data["vuelos"]
+
+def load_topology_data(data):
+    """
+    Valida y carga un diccionario en modo topología.
+    """
+    if not isinstance(data, dict):
+        raise ValueError("El archivo JSON de topología debe contener un objeto que representa la raíz.")
+    return data
+
+def load_insert_json(file_path):
+    """
+    Carga y valida un archivo JSON desde el disco en modo inserción.
+    """
+    data = load_json(file_path)
+    return load_insert_data(data)
 
 def load_topology_json(file_path):
     """
-    Carga un archivo JSON en modo topología, que representa la estructura de un árbol AVL.
-    
-    Args:
-        file_path (str): Ruta al archivo JSON.
-    
-    Returns:
-        dict: Estructura del árbol cargada.
-    
-    Raises:
-        ValueError: Si el formato no es correcto.
+    Carga un archivo JSON desde el disco en modo topología.
     """
-    # Cargar los datos JSON
     data = load_json(file_path)
-    
-    # Verificar que sea un diccionario (raíz del árbol)
-    if not isinstance(data, dict):
-        raise ValueError("El archivo JSON de topología debe contener un objeto que representa la raíz del árbol.")
-    
-    # Aquí se podría agregar validación adicional para la estructura del árbol,
-    # pero por simplicidad, asumimos que el JSON está bien formado.
-
-    return data
+    return load_topology_data(data)
 
 
 

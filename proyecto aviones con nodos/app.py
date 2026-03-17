@@ -10,10 +10,20 @@ from models.traversals import Traversals
 from controller.flight_controller import FlightController
 from Services.history_manager import HistoryManager
 from Services.concurrency_simulator import ConcurrencySimulator
-from utils.json_loader import select_json_file, load_insert_json, load_topology_json
+from utils.json_loader import load_insert_data, load_topology_data
+from fastapi.middleware.cors import CORSMiddleware
 
 # Instancia de FastAPI
 app = FastAPI(title="SkyBalance Airline API")
+
+# Habilitar CORS para el frontend en React (dev server puertos típicos de Vite)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Estado Global del backend (Singleton en memoria)
 class AppState:
@@ -38,22 +48,17 @@ def get_status():
     return {"status": "ok", "message": "SkyBalance API is running"}
 
 @app.post("/api/load-tree")
-def load_tree_from_json():
+async def load_tree_from_json(data: dict = Body(...)):
     """
-    Abre el cuadro de diálogo (en el backend) para elegir archivo, y lo procesa.
-    Ojo: El filedialog de tkinter abrirá en el servidor donde se ejecuta.
+    Recibe el JSON enviado desde el Frontend y lo inyecta en el árbol.
     """
-    file_path = select_json_file()
-    if not file_path:
-        raise HTTPException(status_code=400, detail="No se seleccionó ningún archivo.")
-        
     try:
-        data = load_insert_json(file_path)
+        flights = load_insert_data(data)
         # Modo INSERCIÓN
         state.avl = AVL()
         state.bst = BST()
         
-        for flight in data:
+        for flight in flights:
             node_avl = state.controller.create_flight_node(flight)
             node_bst = state.controller.create_flight_node(flight)
             state.avl.insert(node_avl)
@@ -63,19 +68,19 @@ def load_tree_from_json():
         _update_penalties(state.avl.root)
         
         return {"message": "Árbol AVL y BST cargados mediante inserción masiva.", "type": "INSERCIÓN"}
-    except Exception:
+    except ValueError:
         try:
-            data = load_topology_json(file_path)
+            tree_data = load_topology_data(data)
             # Modo TOPOLOGÍA
             state.avl = AVL()
             state.bst = BST() # En topologia solo cargamos AVL o ambos si se quiere (pero asuminos AVL)
-            state.controller.load_topology_tree(state.avl, data)
+            state.controller.load_topology_tree(state.avl, tree_data)
             
             _update_penalties(state.avl.root)
             
             return {"message": "Árbol AVL cargado desde topología.", "type": "TOPOLOGÍA"}
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error al cargar JSON: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error al procesar el JSON: {str(e)}")
 
 def _update_penalties(node):
     if not node: return

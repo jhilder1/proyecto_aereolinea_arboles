@@ -5,7 +5,7 @@ class FlightController:
     def create_flight_node(self, flight_data):
         """Crea un nodo de vuelo a partir de los datos proporcionados."""
         return FlightNode(
-            flight_id=flight_data.get("codigo"),
+            flight_id=str(flight_data.get("codigo")), # Forzamos parsing a String 
             origin=flight_data.get("origen", ""),
             base_price=flight_data.get("precioBase", 0),
             passengers=flight_data.get("pasajeros", 0),

@@ -1,37 +1,27 @@
 import React, { useMemo } from 'react';
-import ReactFlow, { Background, Controls, MiniMap } from 'reactflow';
+import ReactFlow, { Background, Controls, MiniMap, Handle, Position } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-// Nodos customizados para tener un diseño distinto si es crítico o promocionado
 const FlightNodeComponent = ({ data }) => {
-   const isCritical = data.is_critical;
-   const isPromo = data.promocion;
+   const isCritical = data.alerta || data.is_critical; 
+   const isPromo = data.promocion; 
    
+   let bgColor = 'bg-[#4caf50]'; // Verde nativo del ejemplo
+   if (isCritical) bgColor = 'bg-[#ff9800]'; // Naranja
+   else if (isPromo) bgColor = 'bg-[#9c27b0]'; // Morado
+
    return (
-      <div className={`p-3 rounded-lg border-2 shadow-lg min-w-[120px] transition-all
-         ${isCritical ? 'bg-rose-950/80 border-rose-500 shadow-rose-500/30' : 'bg-sky-900/90 border-sky-400 shadow-sky-500/20'}
-         ${isPromo && !isCritical ? 'border-amber-400 shadow-amber-500/20' : ''}
-      `}>
-         <div className="font-bold text-lg text-white text-center border-b border-white/20 pb-1 mb-2">
+      <div className={`px-4 py-2 shadow-lg border-2 border-transparent hover:border-white text-white min-w-[90px] text-center transition-colors cursor-pointer ${bgColor}`}>
+         <Handle type="target" position={Position.Top} className="opacity-0" />
+         
+         <div className="font-bold text-[15px] tracking-wide flex justify-center items-center h-5">
             {data.codigo}
          </div>
-         <div className="space-y-1 text-xs text-sky-200">
-            <div className="flex justify-between">
-               <span>P. Final:</span>
-               <span className="font-mono text-white">${data.precioFinal?.toFixed(1)}</span>
-            </div>
-            <div className="flex justify-between">
-               <span>Balance:</span>
-               <span className={`font-mono font-bold ${data.factor_balanceo > 1 || data.factor_balanceo < -1 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                  {data.factor_balanceo}
-               </span>
-            </div>
-            <div className="flex justify-between">
-               <span>Altura:</span>
-               <span className="font-mono text-white">{data.altura}</span>
-            </div>
+         <div className="text-[10px] opacity-90 leading-tight">
+            BF: {data.factor_balanceo > 0 ? `+${data.factor_balanceo}` : data.factor_balanceo}
          </div>
-         {isCritical && <div className="mt-2 text-[10px] text-center bg-rose-500/20 text-rose-300 py-1 rounded">CRÍTICO</div>}
+         
+         <Handle type="source" position={Position.Bottom} className="opacity-0" />
       </div>
    );
 };
@@ -40,19 +30,24 @@ const nodeTypes = {
   flightNode: FlightNodeComponent,
 };
 
-// Convierte el nodo JSON anidado en Nodos (Nodes) y Arcos (Edges) para ReactFlow
+const getTreeDepth = (node) => {
+   if (!node) return 0;
+   return 1 + Math.max(getTreeDepth(node.izquierdo), getTreeDepth(node.derecho));
+}
+
 const buildGraphData = (treeJson) => {
    const nodes = [];
    const edges = [];
+   const maxDepth = getTreeDepth(treeJson);
    
+   const baseHorizontalSpacing = Math.pow(1.8, maxDepth) * 35; // Calibrado
+   const layerHeight = 120; // Más corto como en el ejemplo
+
    function traverse(node, x, y, level, parentId = null) {
       if (!node) return;
       
       const nodeId = node.codigo.toString();
       
-      // Ajuste de "espacio" horizontal según la profundidad para evitar que se pisen (algo simple)
-      const xOffset = 250 / Math.pow(1.5, level); 
-
       nodes.push({
          id: nodeId,
          type: 'flightNode',
@@ -65,41 +60,43 @@ const buildGraphData = (treeJson) => {
             id: `e-${parentId}-${nodeId}`,
             source: parentId,
             target: nodeId,
-            type: 'smoothstep',
-            animated: node.promocion // Animamos las aristas de los promos para un toque "vibrante"
+            type: 'straight', // Líneas rectas idénticas al mockup
+            style: { strokeWidth: 1.5, stroke: '#d1d5db' },
          });
       }
       
-      if (node.izquierdo) {
-         traverse(node.izquierdo, x - xOffset, y + 150, level + 1, nodeId);
-      }
+      const dynamicXOffset = baseHorizontalSpacing / Math.pow(2, level);
       
+      if (node.izquierdo) {
+         traverse(node.izquierdo, x - dynamicXOffset, y + layerHeight, level + 1, nodeId);
+      }
       if (node.derecho) {
-         traverse(node.derecho, x + xOffset, y + 150, level + 1, nodeId);
+         traverse(node.derecho, x + dynamicXOffset, y + layerHeight, level + 1, nodeId);
       }
    }
    
-   traverse(treeJson, 400, 50, 1);
-   
+   traverse(treeJson, 0, 50, 1);
    return { nodes, edges };
 }
 
-export default function AVLTreeViz({ treeData }) {
-   if (!treeData) return <div className="text-white">Sin datos para graficar...</div>;
+export default function AVLTreeViz({ treeData, onNodeClick }) {
+   if (!treeData) return null;
 
    const { nodes, edges } = useMemo(() => buildGraphData(treeData), [treeData]);
 
    return (
-      <div className="w-full h-full min-h-[500px]">
+      <div style={{ width: '100%', height: '100%', minHeight: '500px', flex: 1 }}>
          <ReactFlow 
             nodes={nodes} 
             edges={edges}
             nodeTypes={nodeTypes}
+            onNodeClick={(event, node) => onNodeClick && onNodeClick(node.data)}
             fitView
          >
-            <Background color="#1e3a8a" gap={20} />
+            {/* Fondo oscuro para igualar el pantallazo */}
+            <Background color="#333" gap={16} /> 
             <Controls />
-            <MiniMap nodeStrokeColor="#0f172a" nodeColor="#3b82f6" maskColor="rgba(0,0,0,0.5)" />
+            <MiniMap nodeStrokeColor="#000" nodeColor="#4caf50" maskColor="rgba(0,0,0,0.5)" />
          </ReactFlow>
       </div>
    );
