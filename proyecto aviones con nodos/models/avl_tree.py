@@ -54,6 +54,21 @@ class AVL(BST):
             # En modo estrés el árbol se deforma, pero igual debemos actualizar
             # la altura del nodo modificado y sus ancestros para métricas futuras.
             self._update_heights_upwards(node)
+            
+    def export_to_dict(self):
+        """Exporta el árbol AVL completo a un diccionario (Punto 1.3)."""
+        if not self.root:
+            return None
+        return self._export_node_to_dict(self.root)
+        
+    def _export_node_to_dict(self, node: FlightNode):
+        if not node:
+            return None
+        data = node.to_dict()
+        data["factor_balanceo"] = self.get_balance_factor(node)
+        data["izquierdo"] = self._export_node_to_dict(node.get_left_child())
+        data["derecho"] = self._export_node_to_dict(node.get_right_child())
+        return data
 
     def _update_heights_upwards(self, node: FlightNode):
         """Actualiza la propiedad height hacia arriba desde el nodo actual."""
@@ -79,11 +94,11 @@ class AVL(BST):
             
             # Caso 3: Izquierda - Derecha (LR)
             elif balance > 1 and self.get_balance_factor(current.get_left_child()) < 0:
-                current = Rotations.__rotateLeftRight(self, current)
+                current = Rotations.rotate_left_right(self, current)
             
             # Caso 4: Derecha - Izquierda (RL)
             elif balance < -1 and self.get_balance_factor(current.get_right_child()) > 0:
-                current = Rotations.__rotateRightLeft(self, current)
+                current = Rotations.rotate_right_left(self, current)
                 
             current = current.get_parent()
 

@@ -67,7 +67,30 @@ class FlightNode:
     def get_profitability(self):
         """Punto 8: Cálculo de rentabilidad del vuelo."""
         final_price_per_passenger = self.get_final_price()
-        return self.passengers * final_price_per_passenger
-    
+        # Si la promoción es un booleano (como en el JSON), lo manejamos como un descuento fijo temporal (ej. 10%) o 0 si false.
+        promo_discount = (self.base_price * 0.1) if self.promotion else 0.0
+        # Rentabilidad = pasajeros × precioFinal – promoción (si aplica) + penalización (si aplica)
+        # Aquí simplificamos el get_final_price que ya debió haber calculado esto,
+        # pero para ser fieles a la formula: pass * (base + pen) - promo
+        return (self.passengers * (self.base_price + self.critical_depth_penalty)) - promo_discount
+        
+    def to_dict(self):
+        """Exporta el nodo y todos sus hijos a un diccionario serializable JSON. (Punto 1.3)"""
+        return {
+            "codigo": self.value,
+            "origen": self.origin,
+            "precioBase": self.base_price,
+            "precioFinal": self.get_final_price(),
+            "pasajeros": self.passengers,
+            "promocion": self.promotion,
+            "alerta": self.alert,
+            "altura": self.height,
+            "factor_balanceo": 0, # Se calculará en el AVL al exportar
+            "is_critical": self.is_critical,
+            "penalizacion": self.critical_depth_penalty,
+            "izquierdo": self.left_child.to_dict() if self.left_child else None,
+            "derecho": self.right_child.to_dict() if self.right_child else None
+        }
+
     def __str__(self):
         return f"FlightNode(ID:{self.value}, H:{self.height}, Price:{self.get_final_price()})"
