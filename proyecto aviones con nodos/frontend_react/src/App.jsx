@@ -76,7 +76,17 @@ function App() {
   const [traversals, setTraversals] = useState(null);
   const [stressMode, setStressMode] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [formData, setFormData] = useState({
+      codigo: '',
+      origen: '',
+      destino: '',
+      horaSalida: '',
+      precioBase: '',
+      pasajeros: '',
+      prioridad: '',
+      promocion: false,
+      alerta: false
+   });
   // Cargar estado inicial
   const fetchTree = async () => {
     try {
@@ -154,6 +164,42 @@ function App() {
       }
   }
 
+
+   const handleCreateFlight = async () => {
+      try {
+         const prioridadMap = {
+            BAJA: 1,
+            MEDIA: 2,
+            ALTA: 3
+         };
+
+      const payload = {
+         codigo: formData.codigo,
+         origen: formData.origen,
+         destino: formData.destino || "N/A",
+         horaSalida: formData.horaSalida || "00:00",
+
+       // 🔥 IMPORTANTE
+         precioBase: Number(formData.precioBase),
+         pasajeros: Number(formData.pasajeros),
+         prioridad: prioridadMap[formData.prioridad?.toUpperCase()] || 1,
+
+         promocion: Boolean(formData.promocion),
+         alerta: false
+      };
+
+      console.log("ENVIANDO:", payload); // 👈 DEBUG
+
+      await api.post('/flights', payload);
+
+      await fetchTree();
+
+   } catch (e) {
+      console.error(e.response?.data);
+      alert(JSON.stringify(e.response?.data, null, 2));
+   }
+   };
+
   return (
     <div className="min-h-screen bg-[#f3f4f6] text-gray-800 font-sans flex flex-col p-2">
       
@@ -193,39 +239,86 @@ function App() {
             <form className="space-y-3 text-xs" onSubmit={(e) => e.preventDefault()}>
                <div className="flex justify-between items-center gap-2">
                   <label className="text-gray-600 font-medium w-1/3">Código:</label>
-                  <input type="text" placeholder="001" className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500" />
-               </div>
+                  <input
+                  type="text"
+                  value={formData.codigo}
+                  onChange={(e) => setFormData({...formData, codigo: e.target.value})}
+                  placeholder="001"
+                  className="flex-1 p-1 border"
+                  />               </div>
                <div className="flex justify-between items-center gap-2">
                   <label className="text-gray-600 font-medium w-1/3">Origen:</label>
-                  <input type="text" placeholder="Manizales" className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500" />
+                  <input
+                    type="text"
+                    value={formData.origen}
+                    onChange={(e) => setFormData({...formData, origen: e.target.value})}
+                    placeholder="Manizales"
+                    className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500"
+                  />
                </div>
                <div className="flex justify-between items-center gap-2">
                   <label className="text-gray-600 font-medium w-1/3">Destino:</label>
-                  <input type="text" placeholder="ej: Bogotá" className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500" />
+                  <input
+                    type="text"
+                    value={formData.destino}
+                    onChange={(e) => setFormData({...formData, destino: e.target.value})}
+                    placeholder="ej: Bogotá"
+                    className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500"
+                  />
                </div>
                <div className="flex justify-between items-center gap-2">
                   <label className="text-gray-600 font-medium w-1/3">Hora Salida:</label>
-                  <input type="text" placeholder="ej: 10:00" className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500" />
+                  <input
+                    type="text"
+                    value={formData.hora_salida}
+                    onChange={(e) => setFormData({...formData, hora_salida: e.target.value})}
+                    placeholder="ej: 10:00"
+                    className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500"
+                  />
                </div>
                <div className="flex justify-between items-center gap-2">
                   <label className="text-gray-600 font-medium w-1/3">Precio Base:</label>
-                  <input type="text" placeholder="ej: 350.00" className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500" />
+                  <input
+                    type="text"
+                    value={formData.precio_base}
+                    onChange={(e) => setFormData({...formData, precio_base: e.target.value})}
+                    placeholder="ej: 350.00"
+                    className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500"
+                  />
                </div>
                <div className="flex justify-between items-center gap-2">
                   <label className="text-gray-600 font-medium w-1/3">Pasajeros:</label>
-                  <input type="text" placeholder="ej: 120" className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500" />
+                  <input
+                    type="text"
+                    value={formData.pasajeros}
+                    onChange={(e) => setFormData({...formData, pasajeros: e.target.value})}
+                    placeholder="ej: 120"
+                    className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500"
+                  />
                </div>
                <div className="flex justify-between items-center gap-2">
                   <label className="text-gray-600 font-medium w-1/3">Prioridad:</label>
-                  <input type="text" placeholder="MEDIA" className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500" />
+                  <input
+                    type="text"
+                    value={formData.prioridad}
+                    onChange={(e) => setFormData({...formData, prioridad: e.target.value})}
+                    placeholder="MEDIA"
+                    className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500"
+                  />
                </div>
                <div className="flex justify-between items-center gap-2">
                   <label className="text-gray-600 font-medium w-1/3">Promoción:</label>
-                  <input type="text" placeholder="0" className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500" />
+                  <input
+                    type="text"
+                    value={formData.promocion}
+                    onChange={(e) => setFormData({...formData, promocion: e.target.value})}
+                    placeholder="0"
+                    className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500"
+                  />
                </div>
                
                <div className="flex justify-center gap-2 pt-4 border-t mt-4">
-                  <button className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 rounded shadow-sm flex items-center font-medium">
+                  <button onClick={handleCreateFlight} className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 rounded shadow-sm flex items-center font-medium">
                      <FiRefreshCw className="mr-1" /> Guardar
                   </button>
                   <button className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 rounded shadow-sm flex items-center font-bold">

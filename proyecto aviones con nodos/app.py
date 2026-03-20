@@ -147,6 +147,34 @@ def process_next_flight():
     _update_penalties(state.avl.root)
     return {"message": "Vuelo procesado", "processed": True, "result": result}
 
+@app.post("/api/flights")
+def create_flight(flight: FlightCreate):
+    """
+    Crear un vuelo manualmente desde el frontend
+    """
+    try:
+        # Guardar estado para UNDO
+        state.history.save_state_to_undo(state.avl.export_to_dict())
+
+        # Crear nodo
+        node_avl = state.controller.create_flight_node(flight.dict())
+        node_bst = state.controller.create_flight_node(flight.dict())
+
+        # Insertar en ambos árboles
+        state.avl.insert(node_avl)
+        state.bst.insert(node_bst)
+
+        # Actualizar métricas
+        _update_penalties(state.avl.root)
+
+        return {
+            "message": "Vuelo creado correctamente",
+            "codigo": flight.codigo
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @app.delete("/api/flights/{codigo}")
 def modify_flight(codigo: str, cascade: bool = False):
     """Punto 1.2: Eliminar un nodo (cascade=false) o Cancelar vuelo con descendencia (cascade=true)"""
