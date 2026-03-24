@@ -164,7 +164,20 @@ function App() {
       }
   }
 
+   const handleDelete = async (codigo) => {
+   try {
 
+      await api.delete(`/flights/${codigo}?cascade=true`);
+
+      await fetchTree();
+
+      setSelectedNode(null);
+
+   } catch (error) {
+      console.error(error);
+      alert("Error eliminando nodo");
+   }
+   };
    const handleCreateFlight = async () => {
       try {
          const prioridadMap = {
@@ -198,6 +211,13 @@ function App() {
       console.error(e.response?.data);
       alert(JSON.stringify(e.response?.data, null, 2));
    }
+   };
+
+   const [selectedNode, setSelectedNode] = useState(null);
+
+   const handleNodeClick = (nodeData) => {
+      console.log("Nodo seleccionado:", nodeData);
+      setSelectedNode(nodeData);
    };
 
   return (
@@ -332,7 +352,10 @@ function App() {
          <section className="flex-1 bg-[#1e293b] rounded shadow relative flex flex-col">
             {treeData ? (
                <div className="flex-1 w-full h-[600px] min-h-[500px]">
-                 <AVLTreeViz treeData={treeData} />
+                  <AVLTreeViz 
+                  treeData={treeData}
+                  onNodeClick={handleNodeClick}
+                  />           
                </div>
             ) : (
                <div className="flex-1 flex flex-col items-center justify-center text-white/40">
@@ -354,6 +377,26 @@ function App() {
          <aside className="w-80 flex flex-col gap-2 overflow-y-auto">
             <MetricsPanel metrics={metrics} />
             <TraversalsPanel traversals={traversals} />
+
+            {selectedNode && (
+               <div className="bg-white border border-gray-200 p-4 rounded shadow-sm">
+                  <h3 className="text-sm font-bold text-gray-800 border-b pb-2 mb-2">
+                     Nodo Seleccionado
+                  </h3>
+
+                  <div className="text-xs text-gray-600 mb-2">
+                     Código: {selectedNode.codigo}
+                  </div>
+
+                  <button
+                     onClick={() => handleDelete(selectedNode.codigo)}
+                     className="w-full py-1.5 bg-red-100 hover:bg-red-200 
+                     text-red-700 border border-red-300 rounded text-xs shadow-sm"
+                  >
+                     Eliminar Vuelo
+                  </button>
+               </div>
+            )}
             
             <div className="bg-white border border-gray-200 p-4 rounded shadow-sm">
                <h3 className="text-sm font-bold flex items-center gap-2 text-gray-800 border-b pb-2 mb-3">
