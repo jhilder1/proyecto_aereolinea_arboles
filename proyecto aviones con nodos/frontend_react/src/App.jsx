@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { FiUpload, FiRefreshCw, FiZap, FiTrash2, FiActivity, FiCornerUpLeft } from 'react-icons/fi';
 import api from './api';
 import AVLTreeViz from './AVLTreeViz';
+import axios from 'axios';
 
 // Utilidad para extraer un reporte fácil de métricas (Estilo Mockup)
 function MetricsPanel({ metrics }) {
@@ -213,6 +214,33 @@ function App() {
    }
    };
 
+   const handleExportTree = async () => {
+      try {
+
+         const response = await axios.get("http://localhost:8000/api/export")
+
+         const data = response.data
+
+         const blob = new Blob(
+            [JSON.stringify(data, null, 2)],
+            { type: "application/json" }
+         )
+
+         const url = window.URL.createObjectURL(blob)
+
+         const link = document.createElement("a")
+         link.href = url
+         link.download = "arbol_avl.json"
+
+         document.body.appendChild(link)
+         link.click()
+         document.body.removeChild(link)
+
+      } catch (error) {
+         console.error("Error exportando árbol:", error)
+      }
+   }
+
    const [selectedNode, setSelectedNode] = useState(null);
 
    const handleNodeClick = (nodeData) => {
@@ -241,6 +269,10 @@ function App() {
              
              <button onClick={handleLoadJsonClick} disabled={loading} className="px-3 py-1 bg-gray-700 hover:bg-gray-500 rounded flex items-center gap-1 text-white shadow-sm border border-gray-500">
                <FiUpload /> {loading ? 'Cargando...' : 'Cargar JSON'}
+             </button>
+
+             <button onClick={handleExportTree} disabled={loading} className="px-3 py-1 bg-gray-700 hover:bg-gray-500 rounded flex items-center gap-1 text-white shadow-sm border border-gray-500">
+               <FiUpload /> {loading ? 'Cargando...' : 'Guardar JSON'}
              </button>
              
              <div className="border-r border-gray-500 mx-1"></div>

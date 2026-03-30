@@ -119,6 +119,31 @@ def get_tree_state():
         }
     }
 
+@app.get("/api/export")
+def export_tree():
+    """
+    Exporta el árbol completo con estructura jerárquica
+    """
+    try:
+        
+        tree_data = state.avl.export_to_dict()
+        
+        return {
+            "tree": tree_data,
+            "metadata": {
+                "type": "AVL",
+                "height": state.avl.root.height if state.avl.root else 0,
+                "rotations": state.avl.rotations_count,
+                "stress_mode": state.avl.stress_mode
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
 class FlightCreate(BaseModel):
     codigo: str
     origen: str

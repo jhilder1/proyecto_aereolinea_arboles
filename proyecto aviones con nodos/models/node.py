@@ -88,8 +88,7 @@ class FlightNode:
             "factor_balanceo": 0, # Se calculará en el AVL al exportar
             "is_critical": self.is_critical,
             "penalizacion": self.critical_depth_penalty,
-            "izquierdo": self.left_child.to_dict() if self.left_child else None,
-            "derecho": self.right_child.to_dict() if self.right_child else None
+            
         }
 
     def __str__(self):
