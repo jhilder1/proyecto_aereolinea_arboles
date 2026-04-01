@@ -293,3 +293,15 @@ class AVL(BST):
             if node.get_left_child():
                 new_prefix = prefix + ("    " if is_left else "│   ")
                 self.__print_tree(node.get_left_child(), new_prefix, True)
+
+    def count_leaves(self, node=None):
+        if node is None:
+            node = self.root
+            
+        if node is None:
+            return 0
+            
+        if node.get_left_child() is None and node.get_right_child() is None:
+            return 1
+            
+        return self.count_leaves(node.get_left_child()) + self.count_leaves(node.get_right_child())

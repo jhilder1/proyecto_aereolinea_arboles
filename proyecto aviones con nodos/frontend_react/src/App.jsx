@@ -208,9 +208,10 @@ function App() {
 
       await fetchTree();
 
-   } catch (e) {
-      console.error(e.response?.data);
-      alert(JSON.stringify(e.response?.data, null, 2));
+   }catch (e) {
+      console.error("ERROR COMPLETO:", e);
+      console.error("RESPONSE:", e.response);
+      console.error("DATA:", e.response?.data);
    }
    };
 
@@ -248,6 +249,20 @@ function App() {
       setSelectedNode(nodeData);
    };
 
+   const [comparison, setComparison] = useState(null)
+
+   const handleCompare = async () => {
+      try {
+
+         const response = await axios.get("http://localhost:8000/api/compare")
+
+         setComparison(response.data)
+
+      } catch (error) {
+         console.error("Error comparando árboles:", error)
+      }
+   }
+
   return (
     <div className="min-h-screen bg-[#f3f4f6] text-gray-800 font-sans flex flex-col p-2">
       
@@ -279,6 +294,7 @@ function App() {
              <button onClick={toggleStress} className="px-3 py-1 hover:bg-gray-500 rounded flex items-center gap-1 text-gray-200">
                <FiZap /> Modo Estrés: {stressMode ? 'ON' : 'OFF'}
              </button>
+             
          </div>
       </div>
 
@@ -373,8 +389,13 @@ function App() {
                   <button onClick={handleCreateFlight} className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 rounded shadow-sm flex items-center font-medium">
                      <FiRefreshCw className="mr-1" /> Guardar
                   </button>
+                  
                   <button className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 rounded shadow-sm flex items-center font-bold">
-                     X Cancelar
+                     Cancelar
+                  </button>
+
+                  <button onClick={handleCompare} disabled={loading} className="px-3 py-1 bg-gray-700 hover:bg-gray-500 rounded flex items-center gap-1 text-white shadow-sm border border-gray-500">
+                     <FiUpload /> {loading ? 'AVL vs BST' : 'Comparar'}
                   </button>
                </div>
             </form>
@@ -480,6 +501,32 @@ function App() {
                </button>
             </div>
          </aside>
+         
+         {comparison && (
+            <div className="bg-white border border-gray-200 p-4 rounded shadow-sm">
+               <h3 className="text-sm font-bold text-gray-800 border-b pb-2 mb-2">
+                  Comparación AVL vs BST
+               </h3>
+
+               <div className="text-xs text-gray-600">
+
+                  <div className="mb-2">
+                     <strong>AVL</strong>
+                     <div>Raíz: {comparison.AVL.root}</div>
+                     <div>Altura: {comparison.AVL.height}</div>
+                     <div>Hojas: {comparison.AVL.leaves}</div>
+                  </div>
+
+                  <div className="border-t pt-2">
+                     <strong>BST</strong>
+                     <div>Raíz: {comparison.BST.root}</div>
+                     <div>Altura: {comparison.BST.height}</div>
+                     <div>Hojas: {comparison.BST.leaves}</div>
+                  </div>
+
+               </div>
+            </div>
+         )}
 
       </div>
     </div>

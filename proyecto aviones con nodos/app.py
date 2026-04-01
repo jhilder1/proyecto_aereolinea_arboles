@@ -47,6 +47,25 @@ state = AppState()
 def get_status():
     return {"status": "ok", "message": "SkyBalance API is running"}
 
+@app.get("/api/compare")
+def compare_trees():
+    
+    avl_root = state.avl.root
+    bst_root = state.bst.root
+
+    return {
+        "AVL": {
+            "root": avl_root.get_value() if avl_root else None,
+            "height": avl_root.height if avl_root else 0,
+            "leaves": state.bst.count_leaves(avl_root)
+        },
+        "BST": {
+            "root": bst_root.get_value() if bst_root else None,
+            "height": state.bst.get_height(bst_root) if bst_root else 0,
+            "leaves": state.bst.count_leaves(bst_root)
+        }
+    }
+
 @app.post("/api/load-tree")
 async def load_tree_from_json(data: dict = Body(...)):
     """
@@ -75,6 +94,7 @@ async def load_tree_from_json(data: dict = Body(...)):
             state.avl = AVL()
             state.bst = BST() # En topologia solo cargamos AVL o ambos si se quiere (pero asuminos AVL)
             state.controller.load_topology_tree(state.avl, tree_data)
+            state.controller.load_topology_tree(state.bst, tree_data) # Cargamos ambos para mantener consistencia en comparación
             
             _update_penalties(state.avl.root)
             
