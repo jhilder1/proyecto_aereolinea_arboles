@@ -52,12 +52,12 @@ class AppState:
 
 state = AppState()
 
-def _update_penalties(node, session):
+def _update_penalties(node, session, depth=1):
     if not node: return
     # Calculamos penalizaciones por profundidad
-    node.update_critical_status(node.height, session.critical_depth_threshold)
-    _update_penalties(node.get_left_child(), session)
-    _update_penalties(node.get_right_child(), session)
+    node.update_critical_status(depth, session.critical_depth_threshold)
+    _update_penalties(node.get_left_child(), session, depth + 1)
+    _update_penalties(node.get_right_child(), session, depth + 1)
 
 def _force_rebalance(node, session):
     if not node: return
@@ -258,7 +258,21 @@ def modify_flight(codigo: str, cascade: bool = False, tree_id: str = "Principal"
 
 class ConfigUpdate(BaseModel):
     stress_mode: bool
+    
+class DepthUpdate(BaseModel):
     depth_threshold: int
+
+@app.post("/api/depth")
+def update_depth(config: DepthUpdate, tree_id: str = "Principal"):
+    session = state.get_session(tree_id)
+    
+    session.history.save_state_to_undo(session.avl.export_to_dict())
+    
+    session.critical_depth_threshold = config.depth_threshold
+    
+    _update_penalties(session.avl.root, session)
+    
+    return {"message": "Profundidad crítica actualizada"}  
 
 @app.post("/api/mode")
 def update_mode(config: ConfigUpdate, tree_id: str = "Principal"):
@@ -266,7 +280,7 @@ def update_mode(config: ConfigUpdate, tree_id: str = "Principal"):
     
     was_stress = session.avl.stress_mode
     session.avl.stress_mode = config.stress_mode
-    session.critical_depth_threshold = config.depth_threshold
+    ##session.critical_depth_threshold = config.depth_threshold
     
     msg = "Configuración actualizada"
     if was_stress and not config.stress_mode:

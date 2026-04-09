@@ -107,6 +107,7 @@ function App() {
   const [metrics, setMetrics] = useState(null);
   const [traversals, setTraversals] = useState(null);
   const [stressMode, setStressMode] = useState(false);
+  const [criticalDepth, setCriticalDepth] = useState(3);
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -128,7 +129,7 @@ function App() {
       setMetrics(res.data.metrics);
       setTraversals(res.data.traversals);
       setStressMode(res.data.stress_mode);
-
+      setCriticalDepth(res.data.critical_depth_threshold);
       const histRes = await api.get(`/history/${activeTreeId}/timeline`);
       setTimeline(histRes.data.timeline);
       
@@ -185,13 +186,26 @@ function App() {
      try {
          await api.post(`/mode?tree_id=${activeTreeId}`, {
             stress_mode: !stressMode,
-            depth_threshold: 5
+            depth_threshold: criticalDepth
          });
          await fetchTree();
      } catch(e) {
          alert("Error cambiando modo");
      }
   }
+
+  const updateCriticalDepth = async () => {
+      try {
+         await api.post(`/depth?tree_id=${activeTreeId}`, {
+            depth_threshold: criticalDepth
+         });
+
+         await fetchTree();
+
+      } catch(e) {
+         alert("Error actualizando profundidad crítica");
+      }
+   };
 
   const handleOptimize = async () => {
       try {
@@ -439,6 +453,9 @@ function App() {
                   </button>
                )}
             </div>
+
+               
+
              <div className="bg-white border border-gray-200 p-4 rounded shadow-sm">
                <h3 className="text-sm font-bold flex items-center gap-2 text-gray-800 border-b pb-2 mb-3">
                  <FiRefreshCw /> Simulación Cola
@@ -468,6 +485,36 @@ function App() {
                >
                   Correr Procesador
                </button>
+            </div>
+            <div className="bg-white border border-gray-200 p-4 rounded shadow-sm">
+               <h3 className="text-sm font-bold flex items-center gap-2 text-gray-800 border-b pb-2 mb-3">
+                  <FiZap /> Configuración Estrés
+               </h3>
+
+               <div className="text-xs text-gray-600 mb-2">
+                  Profundidad Crítica
+               </div>
+
+               <input
+                  type="number"
+                  min="0"
+                  value={criticalDepth}
+                  onChange={(e) => setCriticalDepth(parseInt(e.target.value))}
+                  className="w-full p-1 border border-gray-300 rounded text-xs mb-2"
+               />
+
+               <button
+                  onClick={updateCriticalDepth}
+                  className="w-full py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 rounded text-xs shadow-sm"
+               >
+                  Aplicar Profundidad
+               </button>
+
+               {stressMode && (
+                  <div className="text-[10px] text-amber-600 mt-2">
+                     Penalización 25% aplicada a nodos bajo esta profundidad
+                  </div>
+               )}
             </div>
             
             {comparison && (

@@ -12,6 +12,7 @@ class FlightNode:
         self.right_child = None
         self.promotion = promotion
         self.alert = alert
+        ##self.depth = 0  # Para seguimiento de profundidad en el árbol, útil para penalizaciones.
         
         # Propiedades AVL
         self.height = 1 # Los nodos nuevos se añaden como hojas, altura 1.
@@ -93,3 +94,4 @@ class FlightNode:
 
     def __str__(self):
         return f"FlightNode(ID:{self.value}, H:{self.height}, Price:{self.get_final_price()})"
+        
