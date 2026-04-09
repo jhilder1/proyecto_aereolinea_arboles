@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { FiUpload, FiRefreshCw, FiZap, FiTrash2, FiActivity, FiCornerUpLeft } from 'react-icons/fi';
+import { FiUpload, FiRefreshCw, FiZap, FiTrash2, FiActivity, FiCornerUpLeft, FiClock, FiPlus, FiFolder } from 'react-icons/fi';
 import api from './api';
 import AVLTreeViz from './AVLTreeViz';
 import axios from 'axios';
 
-// Utilidad para extraer un reporte fácil de métricas (Estilo Mockup)
 function MetricsPanel({ metrics }) {
   if (!metrics) return null;
   return (
@@ -71,11 +70,44 @@ function TraversalsPanel({ traversals }) {
   )
 }
 
+function HistoryPanel({ timeline, onTimeTravel }) {
+  if (!timeline) return null;
+  return (
+    <div className="bg-white border border-gray-200 p-4 rounded shadow-sm w-full mt-2 flex flex-col h-64">
+      <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-1 border-b pb-2">
+         <FiClock /> Historial de Movimientos
+      </h3>
+      <div className="flex-1 space-y-1 text-xs overflow-y-auto pr-1">
+         {timeline.slice().reverse().map((event) => (
+             <div 
+                key={event.index} 
+                onClick={() => onTimeTravel(event.index)} 
+                className="p-1.5 border border-transparent hover:border-blue-300 hover:bg-blue-50 cursor-pointer rounded flex justify-between items-center transition-colors shadow-sm bg-gray-50 mb-1"
+             >
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-gray-500 w-4">{event.index}.</span>
+                    <span className="font-semibold text-gray-700">{event.action}</span>
+                </div>
+                <span className="text-[9px] text-gray-400">
+                    {new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: "2-digit", second: "2-digit" })}
+                </span>
+             </div>
+         ))}
+         {timeline.length === 0 && <div className="text-gray-400 p-2">Sin historial</div>}
+      </div>
+    </div>
+  )
+}
+
 function App() {
+  const [activeTreeId, setActiveTreeId] = useState("Principal");
+  const [treesList, setTreesList] = useState(["Principal"]);
+
   const [treeData, setTreeData] = useState(null);
   const [metrics, setMetrics] = useState(null);
   const [traversals, setTraversals] = useState(null);
   const [stressMode, setStressMode] = useState(false);
+  const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
       codigo: '',
@@ -88,14 +120,20 @@ function App() {
       promocion: false,
       alerta: false
    });
-  // Cargar estado inicial
+
   const fetchTree = async () => {
     try {
-      const res = await api.get('/tree');
+      const res = await api.get(`/tree?tree_id=${activeTreeId}`);
       setTreeData(res.data.avl);
       setMetrics(res.data.metrics);
       setTraversals(res.data.traversals);
       setStressMode(res.data.stress_mode);
+
+      const histRes = await api.get(`/history/${activeTreeId}/timeline`);
+      setTimeline(histRes.data.timeline);
+      
+      const sessRes = await api.get(`/trees`);
+      setTreesList(sessRes.data.trees);
     } catch (error) {
        console.error("Error fetching tree", error);
     }
@@ -103,7 +141,7 @@ function App() {
 
   useEffect(() => {
     fetchTree();
-  }, []);
+  }, [activeTreeId]);
 
   const fileInputRef = useRef(null);
 
@@ -116,23 +154,36 @@ function App() {
         const text = await file.text();
         const jsonData = JSON.parse(text);
         
-        await api.post('/load-tree', jsonData);
+        await api.post(`/load-tree?tree_id=${activeTreeId}`, jsonData);
         await fetchTree();
      } catch(e) {
-        alert("Error decodificando o enviando el JSON. Asegúrate de que el formato sea correcto.");
+        alert("Error decodificando o enviando el JSON.");
      } finally {
         setLoading(false);
         if (fileInputRef.current) fileInputRef.current.value = "";
      }
   };
 
-  const handleLoadJsonClick = () => {
-     fileInputRef.current?.click();
+  const handleCreateNewTree = async () => {
+      const name = prompt("Ingresa un nombre para el nuevo vuelo/árbol:");
+      if(name && name.trim()){
+          await api.post(`/trees/${name.trim()}`);
+          setActiveTreeId(name.trim());
+      }
+  };
+
+  const handleTimeTravel = async (index) => {
+      try {
+          await api.post(`/history/${activeTreeId}/travel/${index}`);
+          await fetchTree();
+      } catch (e) {
+          alert("Error viajando temporalmente");
+      }
   };
 
   const toggleStress = async () => {
      try {
-         await api.post('/mode', {
+         await api.post(`/mode?tree_id=${activeTreeId}`, {
             stress_mode: !stressMode,
             depth_threshold: 5
          });
@@ -144,7 +195,7 @@ function App() {
 
   const handleOptimize = async () => {
       try {
-          const res = await api.delete('/flights/optimize/economic');
+          const res = await api.delete(`/flights/optimize/economic?tree_id=${activeTreeId}`);
           alert(res.data.message);
           await fetchTree();
       } catch(e) {
@@ -154,7 +205,7 @@ function App() {
 
   const handleUndo = async () => {
       try {
-          const res = await api.post('/history/undo');
+          const res = await api.post(`/history/undo?tree_id=${activeTreeId}`);
           if(res.data.undo){
               await fetchTree();
           } else {
@@ -166,86 +217,60 @@ function App() {
   }
 
    const handleDelete = async (codigo) => {
-   try {
-
-      await api.delete(`/flights/${codigo}?cascade=true`);
-
-      await fetchTree();
-
-      setSelectedNode(null);
-
-   } catch (error) {
-      console.error(error);
-      alert("Error eliminando nodo");
-   }
+       try {
+          await api.delete(`/flights/${codigo}?cascade=true&tree_id=${activeTreeId}`);
+          await fetchTree();
+          setSelectedNode(null);
+       } catch (error) {
+          alert("Error eliminando nodo");
+       }
    };
+
    const handleCreateFlight = async () => {
       try {
          const prioridadMap = {
-            BAJA: 1,
-            MEDIA: 2,
-            ALTA: 3
+            BAJA: 1, MEDIA: 2, ALTA: 3
          };
 
-      const payload = {
-         codigo: formData.codigo,
-         origen: formData.origen,
-         destino: formData.destino || "N/A",
-         horaSalida: formData.horaSalida || "00:00",
+         const payload = {
+            codigo: formData.codigo,
+            origen: formData.origen,
+            destino: formData.destino || "N/A",
+            horaSalida: formData.horaSalida || "00:00",
+            precioBase: Number(formData.precioBase),
+            pasajeros: Number(formData.pasajeros),
+            prioridad: prioridadMap[formData.prioridad?.toUpperCase()] || 1,
+            promocion: Boolean(formData.promocion),
+            alerta: false
+         };
 
-       // 🔥 IMPORTANTE
-         precioBase: Number(formData.precioBase),
-         pasajeros: Number(formData.pasajeros),
-         prioridad: prioridadMap[formData.prioridad?.toUpperCase()] || 1,
+         await api.post(`/flights?tree_id=${activeTreeId}`, payload);
+         await fetchTree();
 
-         promocion: Boolean(formData.promocion),
-         alerta: false
-      };
-
-      console.log("ENVIANDO:", payload); // 👈 DEBUG
-
-      await api.post('/flights', payload);
-
-      await fetchTree();
-
-   }catch (e) {
-      console.error("ERROR COMPLETO:", e);
-      console.error("RESPONSE:", e.response);
-      console.error("DATA:", e.response?.data);
-   }
+      }catch (e) {
+         console.error("ERROR", e);
+      }
    };
 
    const handleExportTree = async () => {
       try {
-
-         const response = await axios.get("http://localhost:8000/api/export")
-
-         const data = response.data
-
-         const blob = new Blob(
-            [JSON.stringify(data, null, 2)],
-            { type: "application/json" }
-         )
-
+         const response = await axios.get(`http://localhost:8000/api/export?tree_id=${activeTreeId}`)
+         const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: "application/json" })
          const url = window.URL.createObjectURL(blob)
-
          const link = document.createElement("a")
          link.href = url
-         link.download = "arbol_avl.json"
-
+         link.download = `arbol_avl_${activeTreeId}.json`
          document.body.appendChild(link)
          link.click()
          document.body.removeChild(link)
-
       } catch (error) {
-         console.error("Error exportando árbol:", error)
+         console.error("Error exportando", error)
       }
    }
 
    const [selectedNode, setSelectedNode] = useState(null);
 
    const handleNodeClick = (nodeData) => {
-      console.log("Nodo seleccionado:", nodeData);
       setSelectedNode(nodeData);
    };
 
@@ -253,25 +278,40 @@ function App() {
 
    const handleCompare = async () => {
       try {
-
-         const response = await axios.get("http://localhost:8000/api/compare")
-
+         const response = await axios.get(`http://localhost:8000/api/compare?tree_id=${activeTreeId}`)
          setComparison(response.data)
-
       } catch (error) {
-         console.error("Error comparando árboles:", error)
+         console.error("Error comparando", error)
       }
    }
 
   return (
     <div className="min-h-screen bg-[#f3f4f6] text-gray-800 font-sans flex flex-col p-2">
       
-      {/* Top Menu (Estilo botonera plana de Windows viejo/Mockup) */}
+      {/* Top Menu */}
       <div className="bg-[#1e293b] text-white p-2 flex flex-col items-center justify-center mb-2 shadow rounded">
-         <div className="flex items-center gap-2 mb-1">
-            <FiActivity className="text-gray-300" />
-            <span className="font-semibold text-sm">SkyBalance</span>
+         <div className="flex items-center gap-4 mb-2 w-full justify-between px-4">
+             <div className="flex items-center gap-2">
+                <FiActivity className="text-gray-300" />
+                <span className="font-semibold text-sm">SkyBalance</span>
+             </div>
+             
+             {/* Workspace Selector */}
+             <div className="flex items-center gap-2">
+                <FiFolder className="text-gray-400" />
+                <select 
+                    value={activeTreeId}
+                    onChange={(e) => setActiveTreeId(e.target.value)}
+                    className="bg-gray-700 text-white text-xs p-1 rounded border border-gray-600 outline-none"
+                >
+                    {treesList.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <button onClick={handleCreateNewTree} className="p-1 hover:bg-gray-600 rounded bg-gray-700 border border-gray-600">
+                    <FiPlus />
+                </button>
+             </div>
          </div>
+
          <div className="flex gap-1 text-xs bg-gray-600 p-1 rounded">
              <button onClick={handleUndo} className="px-3 py-1 hover:bg-gray-500 rounded flex items-center gap-1 text-gray-200">
                <FiCornerUpLeft /> Deshacer
@@ -280,9 +320,8 @@ function App() {
              
              <input type="file" accept=".json" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
              <span className="px-3 py-1 text-gray-400 cursor-not-allowed">Elegir archivo</span>
-             <span className="px-1 py-1 text-gray-400">No se eligió ningún archivo</span>
              
-             <button onClick={handleLoadJsonClick} disabled={loading} className="px-3 py-1 bg-gray-700 hover:bg-gray-500 rounded flex items-center gap-1 text-white shadow-sm border border-gray-500">
+             <button onClick={() => fileInputRef.current?.click()} disabled={loading} className="px-3 py-1 bg-gray-700 hover:bg-gray-500 rounded flex items-center gap-1 text-white shadow-sm border border-gray-500">
                <FiUpload /> {loading ? 'Cargando...' : 'Cargar JSON'}
              </button>
 
@@ -299,7 +338,7 @@ function App() {
       </div>
 
       <div className="flex flex-1 gap-2 h-full overflow-hidden">
-         {/* Sidebar Izquierdo: Formulario de Agregar Vuelo estilo Mockup */}
+         {/* Sidebar Izquierdo */}
          <aside className="w-[300px] bg-white border border-gray-200 rounded shadow-sm flex flex-col p-4 overflow-y-auto">
             <h2 className="text-sm font-bold flex items-center gap-2 text-gray-800 border-b pb-2 mb-3">
               <span className="text-gray-500">✈</span> Datos del Vuelo
@@ -307,144 +346,75 @@ function App() {
             <form className="space-y-3 text-xs" onSubmit={(e) => e.preventDefault()}>
                <div className="flex justify-between items-center gap-2">
                   <label className="text-gray-600 font-medium w-1/3">Código:</label>
-                  <input
-                  type="text"
-                  value={formData.codigo}
-                  onChange={(e) => setFormData({...formData, codigo: e.target.value})}
-                  placeholder="001"
-                  className="flex-1 p-1 border"
-                  />               </div>
+                  <input type="text" value={formData.codigo} onChange={(e) => setFormData({...formData, codigo: e.target.value})} placeholder="001" className="flex-1 p-1 border"/>
+               </div>
                <div className="flex justify-between items-center gap-2">
                   <label className="text-gray-600 font-medium w-1/3">Origen:</label>
-                  <input
-                    type="text"
-                    value={formData.origen}
-                    onChange={(e) => setFormData({...formData, origen: e.target.value})}
-                    placeholder="Manizales"
-                    className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500"
-                  />
+                  <input type="text" value={formData.origen} onChange={(e) => setFormData({...formData, origen: e.target.value})} placeholder="Manizales" className="flex-1 p-1 border rounded" />
                </div>
                <div className="flex justify-between items-center gap-2">
                   <label className="text-gray-600 font-medium w-1/3">Destino:</label>
-                  <input
-                    type="text"
-                    value={formData.destino}
-                    onChange={(e) => setFormData({...formData, destino: e.target.value})}
-                    placeholder="ej: Bogotá"
-                    className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500"
-                  />
+                  <input type="text" value={formData.destino} onChange={(e) => setFormData({...formData, destino: e.target.value})} placeholder="Bogotá" className="flex-1 p-1 border rounded" />
                </div>
                <div className="flex justify-between items-center gap-2">
-                  <label className="text-gray-600 font-medium w-1/3">Hora Salida:</label>
-                  <input
-                    type="text"
-                    value={formData.hora_salida}
-                    onChange={(e) => setFormData({...formData, hora_salida: e.target.value})}
-                    placeholder="ej: 10:00"
-                    className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500"
-                  />
-               </div>
-               <div className="flex justify-between items-center gap-2">
-                  <label className="text-gray-600 font-medium w-1/3">Precio Base:</label>
-                  <input
-                    type="text"
-                    value={formData.precio_base}
-                    onChange={(e) => setFormData({...formData, precio_base: e.target.value})}
-                    placeholder="ej: 350.00"
-                    className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500"
-                  />
+                  <label className="text-gray-600 font-medium w-1/3">Base P.:</label>
+                  <input type="text" value={formData.precioBase} onChange={(e) => setFormData({...formData, precioBase: e.target.value})} placeholder="350.00" className="flex-1 p-1 border rounded" />
                </div>
                <div className="flex justify-between items-center gap-2">
                   <label className="text-gray-600 font-medium w-1/3">Pasajeros:</label>
-                  <input
-                    type="text"
-                    value={formData.pasajeros}
-                    onChange={(e) => setFormData({...formData, pasajeros: e.target.value})}
-                    placeholder="ej: 120"
-                    className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500"
-                  />
-               </div>
-               <div className="flex justify-between items-center gap-2">
-                  <label className="text-gray-600 font-medium w-1/3">Prioridad:</label>
-                  <input
-                    type="text"
-                    value={formData.prioridad}
-                    onChange={(e) => setFormData({...formData, prioridad: e.target.value})}
-                    placeholder="MEDIA"
-                    className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500"
-                  />
-               </div>
-               <div className="flex justify-between items-center gap-2">
-                  <label className="text-gray-600 font-medium w-1/3">Promoción:</label>
-                  <input
-                    type="text"
-                    value={formData.promocion}
-                    onChange={(e) => setFormData({...formData, promocion: e.target.value})}
-                    placeholder="0"
-                    className="flex-1 p-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:border-gray-500"
-                  />
+                  <input type="text" value={formData.pasajeros} onChange={(e) => setFormData({...formData, pasajeros: e.target.value})} placeholder="120" className="flex-1 p-1 border rounded" />
                </div>
                
                <div className="flex justify-center gap-2 pt-4 border-t mt-4">
                   <button onClick={handleCreateFlight} className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 rounded shadow-sm flex items-center font-medium">
                      <FiRefreshCw className="mr-1" /> Guardar
                   </button>
-                  
-                  <button className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 rounded shadow-sm flex items-center font-bold">
-                     Cancelar
-                  </button>
-
                   <button onClick={handleCompare} disabled={loading} className="px-3 py-1 bg-gray-700 hover:bg-gray-500 rounded flex items-center gap-1 text-white shadow-sm border border-gray-500">
-                     <FiUpload /> {loading ? 'AVL vs BST' : 'Comparar'}
+                     <FiUpload /> Comparar
                   </button>
                </div>
             </form>
+
+            <HistoryPanel timeline={timeline} onTimeTravel={handleTimeTravel} />
+
          </aside>
 
-         {/* Centro: Visualización del Arbol */}
-         <section className="flex-1 bg-[#1e293b] rounded shadow relative flex flex-col">
-            {treeData ? (
-               <div className="flex-1 w-full h-[600px] min-h-[500px]">
-                  <AVLTreeViz 
-                  treeData={treeData}
-                  onNodeClick={handleNodeClick}
-                  />           
-               </div>
-            ) : (
-               <div className="flex-1 flex flex-col items-center justify-center text-white/40">
-                  <FiUpload className="text-4xl mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Árbol Vacío</p>
-               </div>
-            )}
+         {/* Centro */}
+         <section className="flex-1 bg-[#1e293b] rounded shadow relative flex flex-col overflow-hidden">
+            <div className="flex-1 w-full h-full relative" style={{ minHeight: '600px' }}>
+                {treeData ? (
+                    <div className="absolute inset-0">
+                    <AVLTreeViz 
+                        treeData={treeData}
+                        onNodeClick={handleNodeClick}
+                    />           
+                    </div>
+                ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-white/40 h-full">
+                    <FiUpload className="text-4xl mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">Árbol Secundario Vacío</p>
+                </div>
+                )}
+            </div>
             
-            {/* Consola inferior falsa estilo Mockup */}
-            <div className="h-24 bg-[#0f172a] border-t-4 border-gray-600 p-2 text-xs font-mono text-gray-300 overflow-y-auto">
-                <div>[Consola] Sistema SkyBalance AVL Iniciado</div>
-                {treeData && <div>[Consola] Árbol renderizado satisfactoriamente. Nodos:{metrics?.nodes || '?'}</div>}
-                {metrics?.massive_cancellations > 0 && <div className="text-rose-400">[Consola] ¡Se han registrado cancelaciones masivas!</div>}
-                {stressMode && <div className="text-amber-400">[Alerta] Modo de Estrés Activo (Balanceo Detenido).</div>}
+            <div className="h-24 min-h-[96px] bg-[#0f172a] border-t-4 border-gray-600 p-2 text-xs font-mono text-gray-300 overflow-y-auto">
+                <div>[Consola] SkyBalance - Vuelo: {activeTreeId}</div>
+                {stressMode && <div className="text-amber-400">[Alerta] Modo de Estrés Activo.</div>}
             </div>
          </section>
          
-         {/* Sidebar Derecho: Métricas y Controles estilo Mockup */}
-         <aside className="w-80 flex flex-col gap-2 overflow-y-auto">
+         {/* Sidebar Derecho */}
+         <aside className="w-80 flex flex-col gap-2 overflow-y-auto pr-1">
             <MetricsPanel metrics={metrics} />
             <TraversalsPanel traversals={traversals} />
 
             {selectedNode && (
                <div className="bg-white border border-gray-200 p-4 rounded shadow-sm">
-                  <h3 className="text-sm font-bold text-gray-800 border-b pb-2 mb-2">
-                     Nodo Seleccionado
-                  </h3>
-
-                  <div className="text-xs text-gray-600 mb-2">
-                     Código: {selectedNode.codigo}
-                  </div>
-
+                  <h3 className="text-sm font-bold text-gray-800 border-b pb-2 mb-2">Nodo Seleccionado</h3>
+                  <div className="text-xs text-gray-600 mb-2">Código: {selectedNode.codigo}</div>
                   <button
                      onClick={() => handleDelete(selectedNode.codigo)}
-                     className="w-full py-1.5 bg-red-100 hover:bg-red-200 
-                     text-red-700 border border-red-300 rounded text-xs shadow-sm"
+                     className="w-full py-1.5 bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 rounded text-xs shadow-sm"
                   >
                      Eliminar Vuelo
                   </button>
@@ -460,7 +430,7 @@ function App() {
                </button>
                {stressMode && (
                   <button onClick={async () => {
-                        const res = await api.get('/tree/audit');
+                        const res = await api.get(`/tree/audit?tree_id=${activeTreeId}`);
                         alert("Auditoría: " + res.data.status + "\n" + JSON.stringify(res.data.inconsistencies));
                      }}
                      className="w-full py-1.5 mt-2 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 rounded text-xs shadow-sm"
@@ -469,8 +439,7 @@ function App() {
                   </button>
                )}
             </div>
-            
-            <div className="bg-white border border-gray-200 p-4 rounded shadow-sm">
+             <div className="bg-white border border-gray-200 p-4 rounded shadow-sm">
                <h3 className="text-sm font-bold flex items-center gap-2 text-gray-800 border-b pb-2 mb-3">
                  <FiRefreshCw /> Simulación Cola
                </h3>
@@ -500,34 +469,30 @@ function App() {
                   Correr Procesador
                </button>
             </div>
-         </aside>
-         
-         {comparison && (
+            
+            {comparison && (
             <div className="bg-white border border-gray-200 p-4 rounded shadow-sm">
                <h3 className="text-sm font-bold text-gray-800 border-b pb-2 mb-2">
                   Comparación AVL vs BST
                </h3>
-
                <div className="text-xs text-gray-600">
-
                   <div className="mb-2">
                      <strong>AVL</strong>
                      <div>Raíz: {comparison.AVL.root}</div>
                      <div>Altura: {comparison.AVL.height}</div>
                      <div>Hojas: {comparison.AVL.leaves}</div>
                   </div>
-
                   <div className="border-t pt-2">
                      <strong>BST</strong>
                      <div>Raíz: {comparison.BST.root}</div>
                      <div>Altura: {comparison.BST.height}</div>
                      <div>Hojas: {comparison.BST.leaves}</div>
                   </div>
-
                </div>
             </div>
-         )}
+          )}
 
+         </aside>
       </div>
     </div>
   );

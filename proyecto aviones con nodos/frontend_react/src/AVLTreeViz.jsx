@@ -38,15 +38,26 @@ const getTreeDepth = (node) => {
 const buildGraphData = (treeJson) => {
    const nodes = [];
    const edges = [];
-   const maxDepth = getTreeDepth(treeJson);
    
-   const baseHorizontalSpacing = Math.pow(1.8, maxDepth) * 35; // Calibrado
-   const layerHeight = 120; // Más corto como en el ejemplo
+   const horizontalSpacing = 110; // Espaciado perfecto y generoso
+   const layerHeight = 120;
+   
+   let inorderIndex = 0;
 
-   function traverse(node, x, y, level, parentId = null) {
+   function traverse(node, level, parentId = null) {
       if (!node) return;
       
       const nodeId = node.codigo.toString();
+      
+      // Rama izquierda
+      if (node.izquierdo) {
+         traverse(node.izquierdo, level + 1, nodeId);
+      }
+      
+      // Nodo actual
+      const x = inorderIndex * horizontalSpacing;
+      const y = level * layerHeight;
+      inorderIndex++;
       
       nodes.push({
          id: nodeId,
@@ -60,22 +71,18 @@ const buildGraphData = (treeJson) => {
             id: `e-${parentId}-${nodeId}`,
             source: parentId,
             target: nodeId,
-            type: 'straight', // Líneas rectas idénticas al mockup
+            type: 'straight', 
             style: { strokeWidth: 1.5, stroke: '#d1d5db' },
          });
       }
       
-      const dynamicXOffset = baseHorizontalSpacing / Math.pow(2, level);
-      
-      if (node.izquierdo) {
-         traverse(node.izquierdo, x - dynamicXOffset, y + layerHeight, level + 1, nodeId);
-      }
+      // Rama derecha
       if (node.derecho) {
-         traverse(node.derecho, x + dynamicXOffset, y + layerHeight, level + 1, nodeId);
+         traverse(node.derecho, level + 1, nodeId);
       }
    }
    
-   traverse(treeJson, 0, 50, 1);
+   traverse(treeJson, 1);
    return { nodes, edges };
 }
 

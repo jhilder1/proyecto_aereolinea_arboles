@@ -6,39 +6,69 @@ from datetime import datetime
 class HistoryManager:
     """
     Gestiona el historial del árbol para permitir:
-    - Hacer Ctrl+Z (Undo) en las operaciones.
+    - Ver la línea temporal completa (Time-Travel).
+    - Viajar en el tiempo sin borrar pasos futuros.
     - Guardar versiones con nombres específicos en el sistema de archivos.
-    - Cargar versiones específicas.
     """
     
-    def __init__(self, max_undo_steps=20):
-        self.undo_stack = []
+    def __init__(self, max_undo_steps=50):
+        self.timeline = [] 
         self.max_undo_steps = max_undo_steps
         self.versions_dir = "versions"
         
         if not os.path.exists(self.versions_dir):
             os.makedirs(self.versions_dir)
             
-    def save_state_to_undo(self, tree_dict):
-        """Guarda el estado actual en la pila de Undo."""
+    def record_action(self, tree_dict, action_name="Operación Desconocida"):
+        """Registra una acción en la línea de tiempo."""
         if tree_dict is None:
             return
             
         # Hacemos una copia profunda porsiaca
         state = copy.deepcopy(tree_dict)
-        self.undo_stack.append(state)
+        
+        entry = {
+            "action": action_name,
+            "timestamp": datetime.now().isoformat(),
+            "tree_state": state
+        }
+        
+        self.timeline.append(entry)
         
         # Mantener límite de memoria
-        if len(self.undo_stack) > self.max_undo_steps:
-             self.undo_stack.pop(0)
+        if len(self.timeline) > self.max_undo_steps:
+             self.timeline.pop(0)
+
+    def get_timeline_summary(self):
+        """Devuelve un resumen de todos los movimientos en el historial."""
+        return [
+            {
+                "index": i, 
+                "action": entry["action"], 
+                "timestamp": entry["timestamp"]
+            } 
+            for i, entry in enumerate(self.timeline)
+        ]
              
+    def get_state_at(self, index):
+        """Recupera el estado de un punto en el tiempo específico."""
+        if 0 <= index < len(self.timeline):
+            return copy.deepcopy(self.timeline[index]["tree_state"])
+        return None
+
+    # Mantenemos las compatibilidades pero referenciadas a timeline
+    def save_state_to_undo(self, tree_dict):
+        # Para compatibilidad con endpoints no actualizados
+        self.record_action(tree_dict, "Acción Legacy")
+
     def can_undo(self):
-        return len(self.undo_stack) > 0
+        return len(self.timeline) > 1
         
     def pop_undo_state(self):
-        """Extrae el último estado para deshacer la acción."""
+        """Extrae el penúltimo estado para deshacer la acción, truncando futuro."""
         if self.can_undo():
-            return self.undo_stack.pop()
+            self.timeline.pop() # Borramos el actual
+            return copy.deepcopy(self.timeline[-1]["tree_state"])
         return None
         
     def save_version(self, tree_dict, version_name):
