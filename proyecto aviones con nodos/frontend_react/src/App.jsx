@@ -99,7 +99,42 @@ function HistoryPanel({ timeline, onTimeTravel }) {
   )
 }
 
+function WelcomeScreen({ onEnter }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white overflow-hidden">
+       {/* Background decorative elements */}
+       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-500/20 rounded-full blur-[100px]"></div>
+       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-purple-500/20 rounded-full blur-[100px]"></div>
+
+       <div className="relative p-10 bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl rounded-3xl flex flex-col items-center text-center max-w-lg mx-4">
+          <div className="w-24 h-24 mb-6 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-2xl rotate-3 flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.6)] transition-transform hover:rotate-6 hover:scale-105 duration-300">
+             <FiActivity className="text-5xl text-white" />
+          </div>
+          
+          <h1 className="text-5xl font-extrabold tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-300 to-white">
+              SkyBalance
+          </h1>
+          <h2 className="text-xs font-bold text-blue-300/80 tracking-[0.3em] uppercase mb-8">Administrador Dinámico de Vuelos</h2>
+          
+          <p className="text-gray-300 text-sm mb-10 leading-relaxed font-light">
+             Bienvenido a la plataforma avanzada de SkyBalance. Modela rutas, analiza rentabilidad concurrente con umbrales críticos y viaja a través del historial temporal apoyado en <strong className="text-white font-medium">Árboles AVL</strong>.
+          </p>
+          
+          <button 
+             onClick={onEnter}
+             className="group relative px-8 py-3.5 font-semibold text-white transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-500 hover:to-purple-500 hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] focus:outline-none transform hover:-translate-y-1"
+          >
+             <span className="relative flex items-center gap-2 text-sm tracking-wide uppercase">
+                Ingresar al Sistema <FiZap className="group-hover:animate-pulse text-lg" />
+             </span>
+          </button>
+       </div>
+    </div>
+  );
+}
+
 function App() {
+  const [hasEntered, setHasEntered] = useState(false);
   const [activeTreeId, setActiveTreeId] = useState("Principal");
   const [treesList, setTreesList] = useState(["Principal"]);
 
@@ -298,6 +333,10 @@ function App() {
          console.error("Error comparando", error)
       }
    }
+
+  if (!hasEntered) {
+    return <WelcomeScreen onEnter={() => setHasEntered(true)} />;
+  }
 
   return (
     <div className="min-h-screen bg-[#f3f4f6] text-gray-800 font-sans flex flex-col p-2">
