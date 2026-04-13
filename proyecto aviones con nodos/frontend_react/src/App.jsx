@@ -143,6 +143,7 @@ function App() {
   const [traversals, setTraversals] = useState(null);
   const [stressMode, setStressMode] = useState(false);
   const [criticalDepth, setCriticalDepth] = useState(3);
+  const [viewVisualComparison, setViewVisualComparison] = useState(false);
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -435,7 +436,26 @@ function App() {
          {/* Centro */}
          <section className="flex-1 bg-[#1e293b] rounded shadow relative flex flex-col overflow-hidden">
             <div className="flex-1 w-full h-full relative" style={{ minHeight: '600px' }}>
-                {treeData ? (
+                {viewVisualComparison && comparison && comparison.AVL && comparison.BST ? (
+                   <div className="absolute inset-0 flex flex-col xl:flex-row gap-2 bg-[#0f172a] p-2">
+                       <div className="flex-1 rounded-lg shadow-inner flex flex-col overflow-hidden border border-gray-600 bg-[#1e293b]">
+                           <div className="bg-[#334155] p-2 text-center text-blue-300 font-bold text-sm tracking-wider shadow">
+                               Árbol AVL (Auto-Balanceado)
+                           </div>
+                           <div className="flex-1 relative">
+                               <AVLTreeViz treeData={comparison.AVL.tree} />
+                           </div>
+                       </div>
+                       <div className="flex-1 rounded-lg shadow-inner flex flex-col overflow-hidden border border-gray-600 bg-[#1e293b]">
+                           <div className="bg-[#334155] p-2 text-center text-orange-300 font-bold text-sm tracking-wider shadow">
+                               Árbol BST (Búsqueda Simple)
+                           </div>
+                           <div className="flex-1 relative">
+                               <AVLTreeViz treeData={comparison.BST.tree} />
+                           </div>
+                       </div>
+                   </div>
+                ) : treeData ? (
                     <div className="absolute inset-0">
                     <AVLTreeViz 
                         treeData={treeData}
@@ -575,6 +595,12 @@ function App() {
                      <div>Hojas: {comparison.BST.leaves}</div>
                   </div>
                </div>
+               <button
+                  onClick={() => setViewVisualComparison(!viewVisualComparison)}
+                  className="w-full mt-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 rounded text-xs shadow-sm font-bold flex items-center justify-center gap-1 transition-colors"
+               >
+                  <FiZap /> {viewVisualComparison ? 'Ocultar Comparación Visual' : 'Ver Comparación Visual'}
+               </button>
             </div>
           )}
 
