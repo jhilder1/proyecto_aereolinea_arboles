@@ -9,12 +9,12 @@ from utils.json_loader import (
 
 def main():
 
-    print("=== SISTEMA DE VUELOS AVL ===")
+    print("=== AVL FLIGHT SYSTEM ===")
 
     file_path = select_json_file()
 
     if not file_path:
-        print("No se seleccionó ningún archivo.")
+        print("No file selected.")
         return
 
     controller = FlightController()
@@ -22,12 +22,12 @@ def main():
 
     try:
 
-        # Intentar cargar como inserción
+        # Try to load as insertion
         flights = load_insert_json(file_path)
 
-        print("\nModo INSERCION detectado")
+        print("\nINSERTION mode detected")
 
-        print("Cantidad de vuelos:", len(flights))
+        print("Number of flights:", len(flights))
 
         controller.insert_flights_into_tree(tree, flights)
 
@@ -35,20 +35,20 @@ def main():
 
         try:
 
-            # Intentar cargar como topología
+            # Try to load as topology
             data = load_topology_json(file_path)
 
-            print("\nModo TOPOLOGIA detectado")
+            print("\nTOPOLOGY mode detected")
 
             controller.load_topology_tree(tree, data)
 
         except Exception as e:
 
-            print("Error cargando el JSON:", e)
+            print("Error loading JSON:", e)
             return
 
 
-    print("\n=== RECORRIDOS DEL ÁRBOL ===")
+    print("\n=== TREE TRAVERSALS ===")
 
     print("\nBreadth First Search (BFS):")
     print(Traversals.breadthFirstSearch(tree.root))
@@ -63,13 +63,13 @@ def main():
     print(Traversals.posOrderTraversal(tree.root))
 
 
-    print("\n=== INFORMACIÓN DEL ÁRBOL ===")
+    print("\n=== TREE INFORMATION ===")
 
     if tree.root:
-        print("Altura del árbol:", tree.root.height)
-        print("Nodo raíz:", tree.root.get_value())
+        print("Tree height:", tree.root.height)
+        print("Root node:", tree.root.get_value())
     else:
-        print("El árbol está vacío.")
+        print("The tree is empty.")
 
 
 if __name__ == "__main__":

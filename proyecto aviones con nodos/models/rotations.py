@@ -3,16 +3,16 @@ from models.node import FlightNode
 
 class Rotations:
     """
-    Clase utilitaria que contiene todas las rotaciones del árbol AVL.
+    Utility class that contains all the rotations of the AVL tree.
 
-    Se separa del árbol principal para mejorar la modularidad del código.
-    Cada método recibe el árbol (tree) y el nodo donde se realizará la rotación.
+    Separated from the main tree to improve code modularity.
+    Each method receives the tree and the node where the rotation will be performed.
     """
 
     @staticmethod
     def rotate_right(tree, y: FlightNode):
         """
-        Rotación simple a la derecha (LL).
+        Single right rotation (LL).
 
                 y                       x
                / \                    /   \
@@ -20,25 +20,25 @@ class Rotations:
              / \                         / \
             T1  T2                      T2  T3
 
-        Esta rotación se aplica cuando el subárbol izquierdo
-        está desbalanceado hacia la izquierda.
+        This rotation is applied when the left subtree
+        is unbalanced to the left.
         """
 
         x = y.get_left_child()
         T2 = x.get_right_child()
 
-        # Rotación
+        # Rotation
         x.set_right_child(y)
         y.set_left_child(T2)
 
-        # Actualizar padres
+        # Update parents
         x.set_parent(y.get_parent())
         y.set_parent(x)
 
         if T2:
             T2.set_parent(y)
 
-        # Ajustar referencia del padre del nodo original
+        # Adjust reference of the original node's parent
         if x.get_parent() is None:
             tree.root = x
         elif x.get_parent().get_left_child() == y:
@@ -46,11 +46,11 @@ class Rotations:
         else:
             x.get_parent().set_right_child(x)
 
-        # Actualizar alturas
+        # Update heights
         tree._update_height(y)
         tree._update_height(x)
 
-        # Registrar rotación
+        # Register rotation
         tree.rotations_count['single_right'] += 1
 
         return x
@@ -58,7 +58,7 @@ class Rotations:
     @staticmethod
     def rotate_left(tree, x: FlightNode):
         """
-        Rotación simple a la izquierda (RR).
+        Single left rotation (RR).
 
             x                         y
            / \                      /   \
@@ -66,25 +66,25 @@ class Rotations:
              / \                 / \
             T2  T3              T1  T2
 
-        Esta rotación se aplica cuando el subárbol derecho
-        está desbalanceado hacia la derecha.
+        This rotation is applied when the right subtree
+        is unbalanced to the right.
         """
 
         y = x.get_right_child()
         T2 = y.get_left_child()
 
-        # Rotación
+        # Rotation
         y.set_left_child(x)
         x.set_right_child(T2)
 
-        # Actualizar padres
+        # Update parents
         y.set_parent(x.get_parent())
         x.set_parent(y)
 
         if T2:
             T2.set_parent(x)
 
-        # Ajustar referencias del padre
+        # Adjust parent references
         if y.get_parent() is None:
             tree.root = y
         elif y.get_parent().get_left_child() == x:
@@ -92,11 +92,11 @@ class Rotations:
         else:
             y.get_parent().set_right_child(y)
 
-        # Actualizar alturas
+        # Update heights
         tree._update_height(x)
         tree._update_height(y)
 
-        # Registrar rotación
+        # Register rotation
         tree.rotations_count['single_left'] += 1
 
         return y
@@ -104,10 +104,10 @@ class Rotations:
     @staticmethod
     def rotate_left_right(tree, node: FlightNode):
         """
-        Rotación doble izquierda-derecha (LR).
+        Double left-right rotation (LR).
 
-        Paso 1: rotación izquierda sobre el hijo izquierdo
-        Paso 2: rotación derecha sobre el nodo actual
+        Step 1: left rotation on the left child
+        Step 2: right rotation on the current node
         """
 
         Rotations.rotate_left(tree, node.get_left_child())
@@ -120,10 +120,10 @@ class Rotations:
     @staticmethod
     def rotate_right_left(tree, node: FlightNode):
         """
-        Rotación doble derecha-izquierda (RL).
+        Double right-left rotation (RL).
 
-        Paso 1: rotación derecha sobre el hijo derecho
-        Paso 2: rotación izquierda sobre el nodo actual
+        Step 1: right rotation on the right child
+        Step 2: left rotation on the current node
         """
 
         Rotations.rotate_right(tree, node.get_right_child())

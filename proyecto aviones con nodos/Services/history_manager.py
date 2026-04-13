@@ -5,10 +5,10 @@ from datetime import datetime
 
 class HistoryManager:
     """
-    Gestiona el historial del árbol para permitir:
-    - Ver la línea temporal completa (Time-Travel).
-    - Viajar en el tiempo sin borrar pasos futuros.
-    - Guardar versiones con nombres específicos en el sistema de archivos.
+    Manages the tree's history to allow:
+    - Viewing the complete timeline (Time-Travel).
+    - Time traveling without deleting future steps.
+    - Saving versions with specific names to the file system.
     """
     
     def __init__(self, max_undo_steps=50):
@@ -20,11 +20,11 @@ class HistoryManager:
             os.makedirs(self.versions_dir)
             
     def record_action(self, tree_dict, action_name="Operación Desconocida"):
-        """Registra una acción en la línea de tiempo."""
+        """Records an action on the timeline."""
         if tree_dict is None:
             return
             
-        # Hacemos una copia profunda porsiaca
+        # Deep copy just in case
         state = copy.deepcopy(tree_dict)
         
         entry = {
@@ -35,12 +35,12 @@ class HistoryManager:
         
         self.timeline.append(entry)
         
-        # Mantener límite de memoria
+        # Maintain memory limit
         if len(self.timeline) > self.max_undo_steps:
              self.timeline.pop(0)
 
     def get_timeline_summary(self):
-        """Devuelve un resumen de todos los movimientos en el historial."""
+        """Returns a summary of all history movements."""
         return [
             {
                 "index": i, 
@@ -51,32 +51,32 @@ class HistoryManager:
         ]
              
     def get_state_at(self, index):
-        """Recupera el estado de un punto en el tiempo específico."""
+        """Retrieves the state of a specific point in time."""
         if 0 <= index < len(self.timeline):
             return copy.deepcopy(self.timeline[index]["tree_state"])
         return None
 
-    # Mantenemos las compatibilidades pero referenciadas a timeline
+    # We keep compatibility but referenced to the timeline
     def save_state_to_undo(self, tree_dict):
-        # Para compatibilidad con endpoints no actualizados
-        self.record_action(tree_dict, "Acción Legacy")
+        # For compatibility with legacy endpoints not updated
+        self.record_action(tree_dict, "Legacy Action")
 
     def can_undo(self):
         return len(self.timeline) > 1
         
     def pop_undo_state(self):
-        """Extrae el penúltimo estado para deshacer la acción, truncando futuro."""
+        """Extracts the penultimate state to undo the action, truncating the future."""
         if self.can_undo():
-            self.timeline.pop() # Borramos el actual
+            self.timeline.pop() # Delete the current
             return copy.deepcopy(self.timeline[-1]["tree_state"])
         return None
         
     def save_version(self, tree_dict, version_name):
-        """Guarda una versión en disco con el nombre especificado."""
+        """Saves a version to disk with the specified name."""
         if tree_dict is None:
             raise ValueError("No se puede guardar un árbol vacío.")
             
-        # Limpiar nombre
+        # Clean name
         safe_name = "".join([c for c in version_name if c.isalpha() or c.isdigit() or c==' ']).rstrip()
         filename = f"{safe_name.replace(' ', '_')}.json"
         filepath = os.path.join(self.versions_dir, filename)
@@ -93,7 +93,7 @@ class HistoryManager:
         return filepath
         
     def list_versions(self):
-        """Lista las versiones guardadas en disco."""
+        """Lists versions saved on disk."""
         versions = []
         for filename in os.listdir(self.versions_dir):
             if filename.endswith(".json"):
@@ -108,12 +108,12 @@ class HistoryManager:
                          })
                  except:
                      pass
-        # Ordenar por fecha desc
+        # Sort by date desc
         versions.sort(key=lambda x: x["timestamp"], reverse=True)
         return versions
         
     def load_version(self, filename):
-        """Carga una versión guardada."""
+        """Loads a saved version."""
         filepath = os.path.join(self.versions_dir, filename)
         if not os.path.exists(filepath):
             raise FileNotFoundError("Versión no encontrada.")

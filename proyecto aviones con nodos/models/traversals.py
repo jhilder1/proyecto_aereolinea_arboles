@@ -1,20 +1,20 @@
 class Traversals:
 
     # ================================
-    # BREADTH FIRST SEARCH (ANCHURA)
+    # BREADTH FIRST SEARCH
     # ================================
 
     @staticmethod
     def breadthFirstSearch(root):
-        """Método para recorrido en anchura"""
+        """Breadth-first search method"""
         if root is None:
-            raise Exception("El árbol está vacío.")
+            raise Exception("The tree is empty.")
         else:
             return Traversals.__breadthFirstSearch(root)
 
     @staticmethod
     def __breadthFirstSearch(currentRoot):
-        """Método para mostrar el recorrido en anchura"""
+        """Method to display the breadth-first search"""
         queue = []
         result = []
 
@@ -41,9 +41,9 @@ class Traversals:
     @staticmethod
     def preOrderTraversal(root):
         results = []
-        """Método para recorrido en profundidad pre-order"""
+        """Method for pre-order depth-first search"""
         if root is None:
-            raise Exception("El árbol está vacío.")
+            raise Exception("The tree is empty.")
         else:
             Traversals.__preOrderTraversal(root, results)
         return results
@@ -70,9 +70,9 @@ class Traversals:
     @staticmethod
     def inOrderTraversal(root):
         results = []
-        """Método para recorrido en profundidad in-order"""
+        """Method for in-order depth-first search"""
         if root is None:
-            raise Exception("El árbol está vacío.")
+            raise Exception("The tree is empty.")
         else:
             Traversals.__inOrderTraversal(root, results)
         return results
@@ -100,9 +100,9 @@ class Traversals:
     @staticmethod
     def posOrderTraversal(root):
         results = []
-        """Método para recorrido en profundidad pos-order"""
+        """Method for post-order depth-first search"""
         if root is None:
-            raise Exception("El árbol está vacío.")
+            raise Exception("The tree is empty.")
         else:
             Traversals.__posOrderTraversal(root, results)
         return results

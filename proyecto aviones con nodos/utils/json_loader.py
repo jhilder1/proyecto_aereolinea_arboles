@@ -1,38 +1,38 @@
 import json
 import os
 
-# NOTA: Tkinter se ha retirado para no interferir con la API Backend web.
+# NOTE: Tkinter has been removed to avoid interfering with the web backend API.
 
 def load_json(file_path):
     """
-    Carga un archivo JSON desde la ruta especificada.
+    Loads a JSON file from the specified path.
     
     Args:
-        file_path (str): Ruta al archivo JSON.
+        file_path (str): Path to the JSON file.
     
     Returns:
-        dict or list: Datos cargados del archivo JSON.
+        dict or list: Data loaded from the JSON file.
     
     Raises:
-        FileNotFoundError: Si el archivo no existe.
-        ValueError: Si hay un error al decodificar el JSON.
+        FileNotFoundError: If the file does not exist.
+        ValueError: If there is an error decoding the JSON.
     """
-    # Verificar si el archivo existe
+    # Check if the file exists
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f"El archivo {file_path} no existe.")
+        raise FileNotFoundError(f"File {file_path} does not exist.")
     
-    # Abrir y cargar el archivo JSON
+    # Open and load the JSON file
     with open(file_path, 'r', encoding='utf-8') as file:
         try:
             data = json.load(file)
             return data
         except json.JSONDecodeError as e:
-            raise ValueError(f"Error al decodificar el archivo JSON: {e}")
+            raise ValueError(f"Error decoding the JSON file: {e}")
 
 def validate_flight(flight):
     """
-    Valida que un objeto de vuelo tenga todos los campos requeridos
-    y que los tipos de datos sean correctos.
+    Validates that a flight object has all required fields
+    and that their data types are correct.
     """
 
     required_fields = [
@@ -51,49 +51,49 @@ def validate_flight(flight):
         if field not in flight:
             raise ValueError(f"Falta el campo '{field}' en el vuelo")
 
-    # Validar tipos básicos (Simplificada para no bloquear tipos mixtos útiles del Profesor)
+    # Validate basic types (Simplified to not block useful mixed types from the Professor)
     if flight.get("codigo") is None:
-        raise ValueError("El campo 'codigo' no puede estar nulo")
+        raise ValueError("Field 'codigo' cannot be null")
 
     if not isinstance(flight["origen"], str):
-        raise ValueError("El campo 'origen' debe ser un string")
+        raise ValueError("Field 'origen' must be a string")
 
     if not isinstance(flight["destino"], str):
-        raise ValueError("El campo 'destino' debe ser un string")
+        raise ValueError("Field 'destino' must be a string")
 
     if not isinstance(flight["horaSalida"], str):
-        raise ValueError("El campo 'horaSalida' debe ser un string")
+        raise ValueError("Field 'horaSalida' must be a string")
 
     if not isinstance(flight["precioBase"], (int, float)):
-        raise ValueError("El campo 'precioBase' debe ser numérico")
+        raise ValueError("Field 'precioBase' must be numeric")
 
     if not isinstance(flight["pasajeros"], int):
-        raise ValueError("El campo 'pasajeros' debe ser un entero")
+        raise ValueError("Field 'pasajeros' must be an integer")
 
     if not isinstance(flight["prioridad"], int):
-        raise ValueError("El campo 'prioridad' debe ser un entero")
+        raise ValueError("Field 'prioridad' must be an integer")
 
     if not isinstance(flight["promocion"], bool):
-        raise ValueError("El campo 'promocion' debe ser booleano")
+        raise ValueError("Field 'promocion' must be a boolean")
 
     if not isinstance(flight["alerta"], bool):
-        raise ValueError("El campo 'alerta' debe ser booleano")
+        raise ValueError("Field 'alerta' must be a boolean")
 
 
 def load_insert_data(data):
     """
-    Valida un diccionario JSON en memoria en modo inserción.
-    El archivo debe tener un objeto con "tipo": "INSERCION", "ordenamiento", y "vuelos" como lista.
+    Validates an in-memory JSON dictionary in insertion mode.
+    The file must have an object with "tipo": "INSERCION", "ordenamiento", and "vuelos" as a list.
     """
     if not isinstance(data, dict):
-        raise ValueError("El archivo JSON debe contener un objeto con 'vuelos'.")
+        raise ValueError("The JSON file must contain an object with 'vuelos'.")
     
     if "tipo" not in data or data["tipo"] != "INSERCION":
-        raise ValueError("El archivo debe tener 'tipo': 'INSERCION'.")
+        raise ValueError("The file must have 'tipo': 'INSERCION'.")
     if "ordenamiento" not in data:
-        raise ValueError("Falta el campo 'ordenamiento'.")
+        raise ValueError("Missing 'ordenamiento' field.")
     if "vuelos" not in data or not isinstance(data["vuelos"], list):
-        raise ValueError("Falta el campo 'vuelos' o no es una lista.")
+        raise ValueError("Missing 'vuelos' field or it is not a list.")
     
     for flight in data["vuelos"]:
         validate_flight(flight)
@@ -102,22 +102,22 @@ def load_insert_data(data):
 
 def load_topology_data(data):
     """
-    Valida y carga un diccionario en modo topología.
+    Validates and loads a dictionary in topology mode.
     """
     if not isinstance(data, dict):
-        raise ValueError("El archivo JSON de topología debe contener un objeto que representa la raíz.")
+        raise ValueError("The topology JSON file must contain an object representing the root.")
     return data
 
 def load_insert_json(file_path):
     """
-    Carga y valida un archivo JSON desde el disco en modo inserción.
+    Loads and validates a JSON file from disk in insertion mode.
     """
     data = load_json(file_path)
     return load_insert_data(data)
 
 def load_topology_json(file_path):
     """
-    Carga un archivo JSON desde el disco en modo topología.
+    Loads a JSON file from disk in topology mode.
     """
     data = load_json(file_path)
     return load_topology_data(data)

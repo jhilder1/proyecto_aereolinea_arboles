@@ -6,9 +6,9 @@ from models.bst_tree import BST
 from models.avl_tree import AVL
 
 def run_tests():
-    print("--- INICIANDO PRUEBAS DE ARBOLES ---")
+    print("--- STARTING TREE TESTS ---")
     
-    # Nodos de prueba
+    # Test nodes
     flights_data = [
         (10, 100, 50, 0),
         (20, 150, 40, 10),
@@ -20,23 +20,23 @@ def run_tests():
     bst = BST()
     avl = AVL()
 
-    print("\nInsertando Nodos (10 -> 20 -> 30 -> 40 -> 50) [Causarán desbalanceo hacia la derecha]")
+    print("\nInserting Nodes (10 -> 20 -> 30 -> 40 -> 50) [Will cause right imbalance]")
     for data in flights_data:
-        # Instanciar nodos separados para no compartir referencias entre árboles
+        # Instantiate separate nodes so references are not shared between trees
         f_bst = FlightNode(*data)
         f_avl = FlightNode(*data)
         
         bst.insert(f_bst)
         avl.insert(f_avl)
 
-    print("\n--- RESULTADOS ---")
-    print(f"Altura BST (esperado 5 - Lineal): {bst.get_height()}")
-    print(f"Altura AVL (esperado 3 - Balanceado): {avl.get_height()}")
+    print("\n--- RESULTS ---")
+    print(f"BST Height (expected 5 - Linear): {bst.get_height()}")
+    print(f"AVL Height (expected 3 - Balanced): {avl.get_height()}")
     
-    print(f"Recorrido Anchura BST: {bst.bread_first_search()}")
-    print(f"Recorrido Anchura AVL: {avl.bread_first_search()}")
+    print(f"BST Breadth-First Search: {bst.bread_first_search()}")
+    print(f"AVL Breadth-First Search: {avl.bread_first_search()}")
     
-    print("\n--- PRUEBA PASADA EXITOSAMENTE SI LAS ALTURAS SON CORRECTAS ---")
+    print("\n--- TEST PASSED SUCCESSFULLY IF HEIGHTS ARE CORRECT ---")
 
 if __name__ == '__main__':
     run_tests()

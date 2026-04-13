@@ -1,30 +1,30 @@
 class FlightNode:
     """
-    Representa un vuelo dentro del sistema SkyBalance.
-    Actúa como nodo tanto para el BST como para el Árbol AVL.
+    Represents a flight within the SkyBalance system.
+    Acts as a node for both the BST and the AVL Tree.
     """
     def __init__(self, flight_id, origin, base_price, passengers, promotion=0.0, alert=False):
-        # Propiedades de Estructura de Árbol
-        self.value = flight_id  # Actúa como el ID o 'Key' para ordenar
+        # Tree Structure Properties
+        self.value = flight_id  # Acts as the ID or 'Key' for ordering
         self.origin = origin
         self.parent = None
         self.left_child = None
         self.right_child = None
         self.promotion = promotion
         self.alert = alert
-        ##self.depth = 0  # Para seguimiento de profundidad en el árbol, útil para penalizaciones.
+        ##self.depth = 0  # For tracking depth in the tree, useful for penalties.
         
-        # Propiedades AVL
-        self.height = 1 # Los nodos nuevos se añaden como hojas, altura 1.
+        # AVL Properties
+        self.height = 1 # New nodes are added as leaves, height 1.
         
-        # Propiedades de Negocio (SkyBalance)
+        # Business Properties (SkyBalance)
         self.base_price = base_price
         self.passengers = passengers
         self.promotion = promotion
         self.critical_depth_penalty = 0.0
         self.is_critical = False
 
-    # --- Getters y Setters de la Estructura de Árbol ---
+    # --- Tree Structure Getters and Setters ---
     def set_parent(self, parent_node):
         self.parent = parent_node
 
@@ -46,11 +46,11 @@ class FlightNode:
     def get_value(self):
         return self.value
 
-    # --- Reglas de Negocio ---
+    # --- Business Rules ---
     def update_critical_status(self, depth, threshold, penalty_percentage=0.25):
         """
-        Punto 6: Sistema de Penalización por Profundidad Crítica.
-        Si la profundidad supera el umbral, se activa la bandera y se calcula penalización.
+        Point 6: Critical Depth Penalty System.
+        If depth exceeds the threshold, the flag is activated and penalty is calculated.
         """
         if depth > threshold:
             self.is_critical = True
@@ -60,23 +60,23 @@ class FlightNode:
             self.critical_depth_penalty = 0.0
 
     def get_final_price(self):
-        """Calcula el precio final aplicando promociones y penalizaciones."""
-        # Rentabilidad = pasajeros × precioFinal – promoción (si aplica) + penalización (si aplica)
-        # Asumimos que el precio final unitario es base + penalizacion - promo (simplificado).
+        """Calculates the final price applying promotions and penalties."""
+        # Profitability = passengers × final_price - promotion (if applicable) + penalty (if applicable)
+        # We assume the unit final price is base + penalty - promo (simplified).
         return self.base_price + self.critical_depth_penalty - self.promotion
 
     def get_profitability(self):
-        """Punto 8: Cálculo de rentabilidad del vuelo."""
+        """Point 8: Calculation of flight profitability."""
         final_price_per_passenger = self.get_final_price()
-        # Si la promoción es un booleano (como en el JSON), lo manejamos como un descuento fijo temporal (ej. 10%) o 0 si false.
+        # If the promotion is a boolean (like in the JSON), we handle it as a fixed temporary discount (e.g. 10%) or 0 if false.
         promo_discount = (self.base_price * 0.1) if self.promotion else 0.0
-        # Rentabilidad = pasajeros × precioFinal – promoción (si aplica) + penalización (si aplica)
-        # Aquí simplificamos el get_final_price que ya debió haber calculado esto,
-        # pero para ser fieles a la formula: pass * (base + pen) - promo
+        # Profitability = passengers × final_price - promotion (if applicable) + penalty (if applicable)
+        # Here we simplify get_final_price which should have already calculated this,
+        # but to be faithful to the formula: pass * (base + pen) - promo
         return (self.passengers * (self.base_price + self.critical_depth_penalty)) - promo_discount
         
     def to_dict(self):
-        """Exporta el nodo y todos sus hijos a un diccionario serializable JSON. (Punto 1.3)"""
+        """Exports the node and all its children to a JSON serializable dictionary. (Point 1.3)"""
         return {
             "codigo": self.value,
             "origen": self.origin,
@@ -86,7 +86,7 @@ class FlightNode:
             "promocion": self.promotion,
             "alerta": self.alert,
             "altura": self.height,
-            "factor_balanceo": 0, # Se calculará en el AVL al exportar
+            "factor_balanceo": 0, # Will be calculated in the AVL when exporting
             "is_critical": self.is_critical,
             "penalizacion": self.critical_depth_penalty,
             

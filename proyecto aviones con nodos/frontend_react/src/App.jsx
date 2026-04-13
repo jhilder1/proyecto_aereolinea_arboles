@@ -10,25 +10,25 @@ function MetricsPanel({ metrics }) {
     <div className="bg-white border border-gray-200 p-4 rounded shadow-sm w-full text-center">
       <h3 className="text-sm font-bold flex items-center justify-center gap-2 mb-3 text-gray-800 border-b pb-2">
         <FiActivity />
-        Métricas del Sistema
+        System Metrics
       </h3>
       
       <div className="space-y-2 text-sm text-gray-600">
          <div>
-            <span className="block font-semibold">Altura AVL</span>
+            <span className="block font-semibold">AVL Height</span>
             <p className="font-mono">{metrics.height}</p>
          </div>
          <div>
-            <span className="block font-semibold">Hojas</span>
+            <span className="block font-semibold">Leaves</span>
             <p className="font-mono">{metrics.leaves}</p>
          </div>
          <div>
-            <span className="block font-semibold">Cancelaciones Masivas</span>
+            <span className="block font-semibold">Massive Cancellations</span>
             <p className="font-mono">{metrics.massive_cancellations}</p>
          </div>
          
          <div className="pt-2 border-t text-xs">
-            <span className="block font-semibold mb-1">Rotaciones Históricas</span>
+            <span className="block font-semibold mb-1">Historical Rotations</span>
             <div className="space-y-1">
                <p>LL: {metrics.rotations.single_left || 0}</p>
                <p>RR: {metrics.rotations.single_right || 0}</p>
@@ -45,24 +45,24 @@ function TraversalsPanel({ traversals }) {
   if (!traversals) return null;
   return (
     <div className="bg-white border border-gray-200 p-4 rounded shadow-sm w-full mt-2">
-      <h3 className="text-sm font-bold text-gray-800 mb-2">Recorridos del Árbol</h3>
+      <h3 className="text-sm font-bold text-gray-800 mb-2">Tree Traversals</h3>
       <div className="space-y-2 font-mono text-xs text-gray-700">
          <div>
             <span className="font-semibold">InOrder: </span>
             <div className="bg-gray-50 p-1 border rounded mt-1 overflow-x-auto whitespace-nowrap scrollbar-hide">
-               {traversals.in_order?.join(" → ") || "Vacío"}
+               {traversals.in_order?.join(" → ") || "Empty"}
             </div>
          </div>
          <div>
             <span className="font-semibold">PreOrder: </span>
             <div className="bg-gray-50 p-1 border rounded mt-1 overflow-x-auto whitespace-nowrap scrollbar-hide">
-               {traversals.pre_order?.join(" → ") || "Vacío"}
+               {traversals.pre_order?.join(" → ") || "Empty"}
             </div>
          </div>
          <div>
             <span className="font-semibold">PostOrder: </span>
             <div className="bg-gray-50 p-1 border rounded mt-1 overflow-x-auto whitespace-nowrap scrollbar-hide">
-               {traversals.post_order?.join(" → ") || "Vacío"}
+               {traversals.post_order?.join(" → ") || "Empty"}
             </div>
          </div>
       </div>
@@ -75,7 +75,7 @@ function HistoryPanel({ timeline, onTimeTravel }) {
   return (
     <div className="bg-white border border-gray-200 p-4 rounded shadow-sm w-full mt-2 flex flex-col h-64">
       <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-1 border-b pb-2">
-         <FiClock /> Historial de Movimientos
+         <FiClock /> Movements History
       </h3>
       <div className="flex-1 space-y-1 text-xs overflow-y-auto pr-1">
          {timeline.slice().reverse().map((event) => (
@@ -93,7 +93,7 @@ function HistoryPanel({ timeline, onTimeTravel }) {
                 </span>
              </div>
          ))}
-         {timeline.length === 0 && <div className="text-gray-400 p-2">Sin historial</div>}
+         {timeline.length === 0 && <div className="text-gray-400 p-2">No history</div>}
       </div>
     </div>
   )
@@ -114,10 +114,10 @@ function WelcomeScreen({ onEnter }) {
           <h1 className="text-5xl font-extrabold tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-300 to-white">
               SkyBalance
           </h1>
-          <h2 className="text-xs font-bold text-blue-300/80 tracking-[0.3em] uppercase mb-8">Administrador Dinámico de Vuelos</h2>
+          <h2 className="text-xs font-bold text-blue-300/80 tracking-[0.3em] uppercase mb-8">Dynamic Flight Manager</h2>
           
           <p className="text-gray-300 text-sm mb-10 leading-relaxed font-light">
-             Bienvenido a la plataforma avanzada de SkyBalance. Modela rutas, analiza rentabilidad concurrente con umbrales críticos y viaja a través del historial temporal apoyado en <strong className="text-white font-medium">Árboles AVL</strong>.
+             Welcome to the advanced SkyBalance platform. Model routes, analyze concurrent profitability with critical thresholds, and time travel through history supported by <strong className="text-white font-medium">AVL Trees</strong>.
           </p>
           
           <button 
@@ -125,7 +125,7 @@ function WelcomeScreen({ onEnter }) {
              className="group relative px-8 py-3.5 font-semibold text-white transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-500 hover:to-purple-500 hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] focus:outline-none transform hover:-translate-y-1"
           >
              <span className="relative flex items-center gap-2 text-sm tracking-wide uppercase">
-                Ingresar al Sistema <FiZap className="group-hover:animate-pulse text-lg" />
+                Enter System <FiZap className="group-hover:animate-pulse text-lg" />
              </span>
           </button>
        </div>
@@ -194,7 +194,7 @@ function App() {
         await api.post(`/load-tree?tree_id=${activeTreeId}`, jsonData);
         await fetchTree();
      } catch(e) {
-        alert("Error decodificando o enviando el JSON.");
+        alert("Error decoding or sending JSON.");
      } finally {
         setLoading(false);
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -202,7 +202,7 @@ function App() {
   };
 
   const handleCreateNewTree = async () => {
-      const name = prompt("Ingresa un nombre para el nuevo vuelo/árbol:");
+      const name = prompt("Enter a name for the new flight/tree:");
       if(name && name.trim()){
           await api.post(`/trees/${name.trim()}`);
           setActiveTreeId(name.trim());
@@ -214,7 +214,7 @@ function App() {
           await api.post(`/history/${activeTreeId}/travel/${index}`);
           await fetchTree();
       } catch (e) {
-          alert("Error viajando temporalmente");
+          alert("Error time traveling");
       }
   };
 
@@ -226,7 +226,7 @@ function App() {
          });
          await fetchTree();
      } catch(e) {
-         alert("Error cambiando modo");
+         alert("Error changing mode");
      }
   }
 
@@ -239,7 +239,7 @@ function App() {
          await fetchTree();
 
       } catch(e) {
-         alert("Error actualizando profundidad crítica");
+         alert("Error updating critical depth");
       }
    };
 
@@ -249,7 +249,7 @@ function App() {
           alert(res.data.message);
           await fetchTree();
       } catch(e) {
-         alert("Error optimizando");
+         alert("Error optimizing");
       }
   }
 
@@ -259,10 +259,10 @@ function App() {
           if(res.data.undo){
               await fetchTree();
           } else {
-              alert("Nada que deshacer");
+              alert("Nothing to undo");
           }
       } catch(e) {
-         alert("Error deshaciendo");
+         alert("Error undoing");
       }
   }
 
@@ -272,7 +272,7 @@ function App() {
           await fetchTree();
           setSelectedNode(null);
        } catch (error) {
-          alert("Error eliminando nodo");
+          alert("Error deleting node");
        }
    };
 
@@ -314,7 +314,7 @@ function App() {
          link.click()
          document.body.removeChild(link)
       } catch (error) {
-         console.error("Error exportando", error)
+         console.error("Error exporting", error)
       }
    }
 
@@ -331,7 +331,7 @@ function App() {
          const response = await axios.get(`http://localhost:8000/api/compare?tree_id=${activeTreeId}`)
          setComparison(response.data)
       } catch (error) {
-         console.error("Error comparando", error)
+         console.error("Error comparing", error)
       }
    }
 
@@ -368,24 +368,24 @@ function App() {
 
          <div className="flex gap-1 text-xs bg-gray-600 p-1 rounded">
              <button onClick={handleUndo} className="px-3 py-1 hover:bg-gray-500 rounded flex items-center gap-1 text-gray-200">
-               <FiCornerUpLeft /> Deshacer
+               <FiCornerUpLeft /> Undo
              </button>
              <div className="border-r border-gray-500 mx-1"></div>
              
              <input type="file" accept=".json" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-             <span className="px-3 py-1 text-gray-400 cursor-not-allowed">Elegir archivo</span>
+             <span className="px-3 py-1 text-gray-400 cursor-not-allowed">Choose file</span>
              
              <button onClick={() => fileInputRef.current?.click()} disabled={loading} className="px-3 py-1 bg-gray-700 hover:bg-gray-500 rounded flex items-center gap-1 text-white shadow-sm border border-gray-500">
-               <FiUpload /> {loading ? 'Cargando...' : 'Cargar JSON'}
+               <FiUpload /> {loading ? 'Loading...' : 'Load JSON'}
              </button>
 
              <button onClick={handleExportTree} disabled={loading} className="px-3 py-1 bg-gray-700 hover:bg-gray-500 rounded flex items-center gap-1 text-white shadow-sm border border-gray-500">
-               <FiUpload /> {loading ? 'Cargando...' : 'Guardar JSON'}
+               <FiUpload /> {loading ? 'Loading...' : 'Save JSON'}
              </button>
              
              <div className="border-r border-gray-500 mx-1"></div>
              <button onClick={toggleStress} className="px-3 py-1 hover:bg-gray-500 rounded flex items-center gap-1 text-gray-200">
-               <FiZap /> Modo Estrés: {stressMode ? 'ON' : 'OFF'}
+               <FiZap /> Stress Mode: {stressMode ? 'ON' : 'OFF'}
              </button>
              
          </div>
@@ -395,19 +395,19 @@ function App() {
          {/* Sidebar Izquierdo */}
          <aside className="w-[300px] bg-white border border-gray-200 rounded shadow-sm flex flex-col p-4 overflow-y-auto">
             <h2 className="text-sm font-bold flex items-center gap-2 text-gray-800 border-b pb-2 mb-3">
-              <span className="text-gray-500">✈</span> Datos del Vuelo
+              <span className="text-gray-500">✈</span> Flight Data
             </h2>
             <form className="space-y-3 text-xs" onSubmit={(e) => e.preventDefault()}>
                <div className="flex justify-between items-center gap-2">
-                  <label className="text-gray-600 font-medium w-1/3">Código:</label>
+                  <label className="text-gray-600 font-medium w-1/3">Code:</label>
                   <input type="text" value={formData.codigo} onChange={(e) => setFormData({...formData, codigo: e.target.value})} placeholder="001" className="flex-1 p-1 border"/>
                </div>
                <div className="flex justify-between items-center gap-2">
-                  <label className="text-gray-600 font-medium w-1/3">Origen:</label>
+                  <label className="text-gray-600 font-medium w-1/3">Origin:</label>
                   <input type="text" value={formData.origen} onChange={(e) => setFormData({...formData, origen: e.target.value})} placeholder="Manizales" className="flex-1 p-1 border rounded" />
                </div>
                <div className="flex justify-between items-center gap-2">
-                  <label className="text-gray-600 font-medium w-1/3">Destino:</label>
+                  <label className="text-gray-600 font-medium w-1/3">Destination:</label>
                   <input type="text" value={formData.destino} onChange={(e) => setFormData({...formData, destino: e.target.value})} placeholder="Bogotá" className="flex-1 p-1 border rounded" />
                </div>
                <div className="flex justify-between items-center gap-2">
@@ -415,16 +415,16 @@ function App() {
                   <input type="text" value={formData.precioBase} onChange={(e) => setFormData({...formData, precioBase: e.target.value})} placeholder="350.00" className="flex-1 p-1 border rounded" />
                </div>
                <div className="flex justify-between items-center gap-2">
-                  <label className="text-gray-600 font-medium w-1/3">Pasajeros:</label>
+                  <label className="text-gray-600 font-medium w-1/3">Passengers:</label>
                   <input type="text" value={formData.pasajeros} onChange={(e) => setFormData({...formData, pasajeros: e.target.value})} placeholder="120" className="flex-1 p-1 border rounded" />
                </div>
                
                <div className="flex justify-center gap-2 pt-4 border-t mt-4">
                   <button onClick={handleCreateFlight} className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 rounded shadow-sm flex items-center font-medium">
-                     <FiRefreshCw className="mr-1" /> Guardar
+                     <FiRefreshCw className="mr-1" /> Save
                   </button>
                   <button onClick={handleCompare} disabled={loading} className="px-3 py-1 bg-gray-700 hover:bg-gray-500 rounded flex items-center gap-1 text-white shadow-sm border border-gray-500">
-                     <FiUpload /> Comparar
+                     <FiUpload /> Compare
                   </button>
                </div>
             </form>
@@ -440,7 +440,7 @@ function App() {
                    <div className="absolute inset-0 flex flex-col xl:flex-row gap-2 bg-[#0f172a] p-2">
                        <div className="flex-1 rounded-lg shadow-inner flex flex-col overflow-hidden border border-gray-600 bg-[#1e293b]">
                            <div className="bg-[#334155] p-2 text-center text-blue-300 font-bold text-sm tracking-wider shadow">
-                               Árbol AVL (Auto-Balanceado)
+                               AVL Tree (Auto-Balanced)
                            </div>
                            <div className="flex-1 relative">
                                <AVLTreeViz treeData={comparison.AVL.tree} />
@@ -448,7 +448,7 @@ function App() {
                        </div>
                        <div className="flex-1 rounded-lg shadow-inner flex flex-col overflow-hidden border border-gray-600 bg-[#1e293b]">
                            <div className="bg-[#334155] p-2 text-center text-orange-300 font-bold text-sm tracking-wider shadow">
-                               Árbol BST (Búsqueda Simple)
+                               BST Tree (Simple Search)
                            </div>
                            <div className="flex-1 relative">
                                <AVLTreeViz treeData={comparison.BST.tree} />
@@ -465,14 +465,14 @@ function App() {
                 ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-white/40 h-full">
                     <FiUpload className="text-4xl mx-auto mb-2 opacity-30" />
-                    <p className="text-sm">Árbol Secundario Vacío</p>
+                    <p className="text-sm">Empty Secondary Tree</p>
                 </div>
                 )}
             </div>
             
             <div className="h-24 min-h-[96px] bg-[#0f172a] border-t-4 border-gray-600 p-2 text-xs font-mono text-gray-300 overflow-y-auto">
-                <div>[Consola] SkyBalance - Vuelo: {activeTreeId}</div>
-                {stressMode && <div className="text-amber-400">[Alerta] Modo de Estrés Activo.</div>}
+                <div>[Console] SkyBalance - Flight: {activeTreeId}</div>
+                {stressMode && <div className="text-amber-400">[Alert] Stress Mode Active.</div>}
             </div>
          </section>
          
@@ -483,32 +483,32 @@ function App() {
 
             {selectedNode && (
                <div className="bg-white border border-gray-200 p-4 rounded shadow-sm">
-                  <h3 className="text-sm font-bold text-gray-800 border-b pb-2 mb-2">Nodo Seleccionado</h3>
-                  <div className="text-xs text-gray-600 mb-2">Código: {selectedNode.codigo}</div>
+                  <h3 className="text-sm font-bold text-gray-800 border-b pb-2 mb-2">Selected Node</h3>
+                  <div className="text-xs text-gray-600 mb-2">Code: {selectedNode.codigo}</div>
                   <button
                      onClick={() => handleDelete(selectedNode.codigo)}
                      className="w-full py-1.5 bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 rounded text-xs shadow-sm"
                   >
-                     Eliminar Vuelo
+                     Delete Flight
                   </button>
                </div>
             )}
             
             <div className="bg-white border border-gray-200 p-4 rounded shadow-sm">
                <h3 className="text-sm font-bold flex items-center gap-2 text-gray-800 border-b pb-2 mb-3">
-                 <FiTrash2 /> Negocio - Administrador
+                 <FiTrash2 /> Business - Administrator
                </h3>
                <button onClick={handleOptimize} className="w-full py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 rounded text-xs shadow-sm flex items-center justify-center">
-                  <FiTrash2 className="mr-1"/> Eliminar Menos Rentabilidad
+                  <FiTrash2 className="mr-1"/> Delete Least Profitable
                </button>
                {stressMode && (
                   <button onClick={async () => {
                         const res = await api.get(`/tree/audit?tree_id=${activeTreeId}`);
-                        alert("Auditoría: " + res.data.status + "\n" + JSON.stringify(res.data.inconsistencies));
+                        alert("Audit: " + res.data.status + "\n" + JSON.stringify(res.data.inconsistencies));
                      }}
                      className="w-full py-1.5 mt-2 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 rounded text-xs shadow-sm"
                   >
-                     <FiZap className="inline mr-1"/> Auditar Árbol
+                     <FiZap className="inline mr-1"/> Audit Tree
                   </button>
                )}
             </div>
@@ -517,7 +517,7 @@ function App() {
 
              <div className="bg-white border border-gray-200 p-4 rounded shadow-sm">
                <h3 className="text-sm font-bold flex items-center gap-2 text-gray-800 border-b pb-2 mb-3">
-                 <FiRefreshCw /> Simulación Cola
+                 <FiRefreshCw /> Queue Simulation
                </h3>
                <button onClick={async () => {
                         try {
@@ -528,12 +528,12 @@ function App() {
                                 pasajeros: Math.floor(Math.random() * 200 + 50)
                            };
                            const res = await api.post('/flights/enqueue', flightData);
-                           alert("Encolado. Fila: " + res.data.queue_size);
+                           alert("Enqueued. Line: " + res.data.queue_size);
                         } catch(e) {}
                   }}
                   className="w-full py-1.5 mb-2 bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 rounded text-xs shadow-sm"
                >
-                  Agregar Vuelo Falso a Cola
+                  Add Fake Flight to Queue
                </button>
                <button onClick={async () => {
                         const res = await api.post('/flights/process');
@@ -542,16 +542,16 @@ function App() {
                   }}
                   className="w-full py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 rounded text-xs shadow-sm font-bold"
                >
-                  Correr Procesador
+                  Run Processor
                </button>
             </div>
             <div className="bg-white border border-gray-200 p-4 rounded shadow-sm">
                <h3 className="text-sm font-bold flex items-center gap-2 text-gray-800 border-b pb-2 mb-3">
-                  <FiZap /> Configuración Estrés
+                  <FiZap /> Stress Configuration
                </h3>
 
                <div className="text-xs text-gray-600 mb-2">
-                  Profundidad Crítica
+                  Critical Depth
                </div>
 
                <input
@@ -566,12 +566,12 @@ function App() {
                   onClick={updateCriticalDepth}
                   className="w-full py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 rounded text-xs shadow-sm"
                >
-                  Aplicar Profundidad
+                  Apply Depth
                </button>
 
                {stressMode && (
                   <div className="text-[10px] text-amber-600 mt-2">
-                     Penalización 25% aplicada a nodos bajo esta profundidad
+                     25% penalty applied to nodes below this depth
                   </div>
                )}
             </div>
@@ -579,27 +579,27 @@ function App() {
             {comparison && (
             <div className="bg-white border border-gray-200 p-4 rounded shadow-sm">
                <h3 className="text-sm font-bold text-gray-800 border-b pb-2 mb-2">
-                  Comparación AVL vs BST
+                  AVL vs BST Comparison
                </h3>
                <div className="text-xs text-gray-600">
                   <div className="mb-2">
                      <strong>AVL</strong>
-                     <div>Raíz: {comparison.AVL.root}</div>
-                     <div>Altura: {comparison.AVL.height}</div>
-                     <div>Hojas: {comparison.AVL.leaves}</div>
+                     <div>Root: {comparison.AVL.root}</div>
+                     <div>Height: {comparison.AVL.height}</div>
+                     <div>Leaves: {comparison.AVL.leaves}</div>
                   </div>
                   <div className="border-t pt-2">
                      <strong>BST</strong>
-                     <div>Raíz: {comparison.BST.root}</div>
-                     <div>Altura: {comparison.BST.height}</div>
-                     <div>Hojas: {comparison.BST.leaves}</div>
+                     <div>Root: {comparison.BST.root}</div>
+                     <div>Height: {comparison.BST.height}</div>
+                     <div>Leaves: {comparison.BST.leaves}</div>
                   </div>
                </div>
                <button
                   onClick={() => setViewVisualComparison(!viewVisualComparison)}
                   className="w-full mt-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 rounded text-xs shadow-sm font-bold flex items-center justify-center gap-1 transition-colors"
                >
-                  <FiZap /> {viewVisualComparison ? 'Ocultar Comparación Visual' : 'Ver Comparación Visual'}
+                  <FiZap /> {viewVisualComparison ? 'Hide Visual Comparison' : 'View Visual Comparison'}
                </button>
             </div>
           )}

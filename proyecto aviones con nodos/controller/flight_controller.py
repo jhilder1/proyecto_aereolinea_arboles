@@ -3,9 +3,9 @@ from models.node import FlightNode
 class FlightController:
     
     def create_flight_node(self, flight_data):
-        """Crea un nodo de vuelo a partir de los datos proporcionados."""
+        """Creates a flight node from the provided data."""
         return FlightNode(
-            flight_id=str(flight_data.get("codigo")), # Forzamos parsing a String 
+            flight_id=str(flight_data.get("codigo")), # Force parsing to String 
             origin=flight_data.get("origen", ""),
             base_price=flight_data.get("precioBase", 0),
             passengers=flight_data.get("pasajeros", 0),
@@ -23,13 +23,13 @@ class FlightController:
         
     
     def load_topology_tree(self, tree, json_data):
-        """Carga la topología del árbol AVL desde JSON"""
+        """Loads the AVL tree topology from JSON"""
         tree.root = self.build_tree_from_json(json_data)
 
 
     def build_tree_from_json(self, node_data):
         """
-        Construye recursivamente una estructura de árbol a partir de JSON.
+        Recursively builds a tree structure from JSON.
         """
 
         if node_data is None:

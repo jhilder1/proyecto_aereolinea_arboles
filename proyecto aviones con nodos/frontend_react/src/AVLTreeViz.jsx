@@ -6,9 +6,9 @@ const FlightNodeComponent = ({ data }) => {
    const isCritical = data.alerta || data.is_critical; 
    const isPromo = data.promocion; 
    
-   let bgColor = 'bg-[#4caf50]'; // Verde nativo del ejemplo
-   if (isCritical) bgColor = 'bg-[#ff9800]'; // Naranja
-   else if (isPromo) bgColor = 'bg-[#9c27b0]'; // Morado
+   let bgColor = 'bg-[#4caf50]'; // Default green for normal flights
+   if (isCritical) bgColor = 'bg-[#ff9800]'; // Orange for critical
+   else if (isPromo) bgColor = 'bg-[#9c27b0]'; // Purple for promotions
 
    return (
       <div className={`px-4 py-2 shadow-lg border-2 border-transparent hover:border-white text-white min-w-[90px] text-center transition-colors cursor-pointer ${bgColor}`}>
@@ -39,7 +39,7 @@ const buildGraphData = (treeJson) => {
    const nodes = [];
    const edges = [];
    
-   const horizontalSpacing = 110; // Espaciado perfecto y generoso
+   const horizontalSpacing = 110; // Optimal horizontal spacing between nodes
    const layerHeight = 120;
    
    let inorderIndex = 0;
@@ -49,12 +49,12 @@ const buildGraphData = (treeJson) => {
       
       const nodeId = node.codigo.toString();
       
-      // Rama izquierda
+      // Left branch
       if (node.izquierdo) {
          traverse(node.izquierdo, level + 1, nodeId);
       }
       
-      // Nodo actual
+      // Current node
       const x = inorderIndex * horizontalSpacing;
       const y = level * layerHeight;
       inorderIndex++;
@@ -76,7 +76,7 @@ const buildGraphData = (treeJson) => {
          });
       }
       
-      // Rama derecha
+      // Right branch
       if (node.derecho) {
          traverse(node.derecho, level + 1, nodeId);
       }

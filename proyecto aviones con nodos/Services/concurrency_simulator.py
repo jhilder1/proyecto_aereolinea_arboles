@@ -3,15 +3,15 @@ from models.node import FlightNode
 
 class ConcurrencySimulator:
     """
-    Simula flujos de inserciones simultáneas manejándolas
-    en una Cola de Solicitudes pendientes.
+    Simulates simultaneous insertion flows by handling them
+    in a pending requests Queue.
     """
     
     def __init__(self):
         self.pending_queue = Queue()
         
     def enqueue_flight(self, flight_dict):
-        """Añade un vuelo a la cola de pendientes."""
+        """Adds a flight to the pending queue."""
         self.pending_queue.put(flight_dict)
         return self.get_queue_size()
         
@@ -19,34 +19,34 @@ class ConcurrencySimulator:
         return self.pending_queue.qsize()
         
     def get_pending_flights(self):
-        """Retorna una lista con los elementos actuales de la cola (sin sacarlos)"""
+        """Returns a list with the current elements of the queue (without popping them)"""
         return list(self.pending_queue.queue)
         
     def process_next(self, tree, flight_controller):
         """
-        Procesa (desencola) el siguiente vuelo y lo inserta en el árbol.
-        Devuelve información sobre el nodo insertado y si generó rebalanceo crítico.
+        Processes (dequeues) the next flight and inserts it into the tree.
+        Returns information about the inserted node and if it generated critical rebalancing.
         """
         if self.pending_queue.empty():
             return None
             
         flight_dict = self.pending_queue.get()
         
-        # Capturamos cuantas rotaciones había antes
+        # Capture how many rotations existed before
         rotations_before = sum(tree.rotations_count.values())
         
-        # Insertar
+        # Insert
         node = flight_controller.create_flight_node(flight_dict)
         tree.insert(node)
         
-        # Rotaciones después
+        # Rotations after
         rotations_after = sum(tree.rotations_count.values())
         rotations_diff = rotations_after - rotations_before
         
         return {
             "flight_inserted": flight_dict["codigo"],
             "rotations_caused": rotations_diff,
-            "conflict_alert": rotations_diff > 0 # Si hubo rotación, consideramos que hubo un impacto estructural
+            "conflict_alert": rotations_diff > 0 # If there was a rotation, we consider it had a structural impact
         }
         
     def clear_queue(self):

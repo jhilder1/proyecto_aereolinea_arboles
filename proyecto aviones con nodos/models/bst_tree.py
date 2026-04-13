@@ -1,15 +1,15 @@
 from models.node import FlightNode
 
 class BST:
-    """Árbol Binario de Búsqueda Base.
-    Este árbol se usará en paralelo con el AVL para demostrar la diferencia
-    estructural cuando no hay balanceo en inserciones subsecuentes.
+    """Base Binary Search Tree.
+    This tree will be used in parallel with the AVL to demonstrate the structural
+    difference when there is no balancing in subsequent insertions.
     """
     def __init__(self):
         self.root = None
 
     def insert(self, node: FlightNode):
-        """Inserta un nodo en el árbol sin aplicar balanceo."""
+        """Inserts a node into the tree without applying balancing."""
         if self.root is None:
             self.root = node
         else:
@@ -17,10 +17,10 @@ class BST:
 
     def _insert(self, current_root: FlightNode, node: FlightNode):
         if node.get_value() == current_root.get_value():
-            raise Exception(f"El vuelo con ID {node.get_value()} ya existe.")
+            raise Exception(f"Flight with ID {node.get_value()} already exists.")
             
         elif node.get_value() > current_root.get_value():
-            # Va hacia la derecha
+            # Goes to the right
             if current_root.get_right_child() is None:
                 current_root.set_right_child(node)
                 node.set_parent(current_root)
@@ -28,7 +28,7 @@ class BST:
                 self._insert(current_root.get_right_child(), node)
                 
         else:
-            # Va hacia la izquierda
+            # Goes to the left
             if current_root.get_left_child() is None:
                 current_root.set_left_child(node)
                 node.set_parent(current_root)
@@ -50,7 +50,7 @@ class BST:
             return self._search(current_root.get_left_child(), value)
 
     def bread_first_search(self):
-        """Recorrido en anchura."""
+        """Breadth-First Search traversal."""
         if self.root is None:
             return []
             
@@ -68,10 +68,10 @@ class BST:
                 
         return result
     
-    ##Funcion para calcular la altura del arbol
+    ## Function to calculate the height of the tree
     
     def get_height(self, node: FlightNode = None):
-        """Calcula la altura máxima del árbol o de un subárbol (O(n) en BST simple)."""
+        """Calculates the maximum height of the tree or a subtree (O(n) in simple BST)."""
         if node is None:
             if self.root is None:
                 return 0
@@ -83,7 +83,7 @@ class BST:
         return 1 + max(left_h, right_h)
 
     def count_leaves(self, node: FlightNode = None):
-        """Cuenta la cantidad de hojas en el árbol."""
+        """Counts the number of leaves in the tree."""
         if node is None:
             if self.root is None:
                 return 0
@@ -99,3 +99,18 @@ class BST:
             leaves += self.count_leaves(node.get_right_child())
             
         return leaves
+
+    def export_to_dict(self):
+        """Exports the complete tree to a dictionary for json visualization."""
+        if not self.root:
+            return None
+        return self._export_node_to_dict(self.root)
+        
+    def _export_node_to_dict(self, node: FlightNode):
+        if not node:
+            return None
+        data = node.to_dict()
+        data["factor_balanceo"] = 0 # Not applicable in simple BST
+        data["izquierdo"] = self._export_node_to_dict(node.get_left_child())
+        data["derecho"] = self._export_node_to_dict(node.get_right_child())
+        return data

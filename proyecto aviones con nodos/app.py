@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Body, Query
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 
-# Importar modelos y servicios
+# Import models and services
 from models.avl_tree import AVL
 from models.bst_tree import BST
 from models.traversals import Traversals
@@ -13,10 +13,10 @@ from Services.concurrency_simulator import ConcurrencySimulator
 from utils.json_loader import load_insert_data, load_topology_data
 from fastapi.middleware.cors import CORSMiddleware
 
-# Instancia de FastAPI
+# FastAPI instance
 app = FastAPI(title="SkyBalance Airline API")
 
-# Habilitar CORS para el frontend en React (dev server puertos típicos de Vite)
+# Enable CORS for React frontend (typical Vite dev server ports)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://127.0.0.1:5173"],
@@ -33,10 +33,10 @@ class TreeSession:
         self.history = HistoryManager()
         self.simulator = ConcurrencySimulator()
         
-        self.critical_depth_threshold = 5 # Por defecto
+        self.critical_depth_threshold = 5 # Default
         self.cancellation_count = 0
         
-        # Guardar el estado inicial en el historial
+        # Save initial state to history
         self.history.record_action(self.avl.export_to_dict(), "Sistema Inicializado")
 
 class AppState:
@@ -54,7 +54,7 @@ state = AppState()
 
 def _update_penalties(node, session, depth=1):
     if not node: return
-    # Calculamos penalizaciones por profundidad
+    # Calculate penalties by depth
     node.update_critical_status(depth, session.critical_depth_threshold)
     _update_penalties(node.get_left_child(), session, depth + 1)
     _update_penalties(node.get_right_child(), session, depth + 1)
@@ -71,7 +71,7 @@ def get_status():
 
 @app.get("/api/trees")
 def list_trees():
-    """Retorna los identificadores de los vuelos (árboles) actuales."""
+    """Returns the identifiers of the current flights (trees)."""
     return {"trees": list(state.sessions.keys())}
 
 @app.post("/api/trees/{tree_id}")
@@ -89,12 +89,14 @@ def compare_trees(tree_id: str = "Principal"):
         "AVL": {
             "root": avl_root.get_value() if avl_root else None,
             "height": avl_root.height if avl_root else 0,
-            "leaves": session.bst.count_leaves(avl_root)
+            "leaves": session.bst.count_leaves(avl_root),
+            "tree": session.avl.export_to_dict()
         },
         "BST": {
             "root": bst_root.get_value() if bst_root else None,
             "height": session.bst.get_height(bst_root) if bst_root else 0,
-            "leaves": session.bst.count_leaves(bst_root)
+            "leaves": session.bst.count_leaves(bst_root),
+            "tree": session.bst.export_to_dict()
         }
     }
 
@@ -135,7 +137,7 @@ async def load_tree_from_json(tree_id: str = "Principal", data: dict = Body(...)
 
 @app.get("/api/tree")
 def get_tree_state(tree_id: str = "Principal"):
-    """Retorna la topología completa del árbol AVL, BST y métricas base."""
+    """Returns the full topology of the AVL tree, BST, and base metrics."""
     session = state.get_session(tree_id)
     avl_dict = session.avl.export_to_dict()
     
@@ -165,7 +167,7 @@ def get_tree_state(tree_id: str = "Principal"):
 
 @app.get("/api/export")
 def export_tree(tree_id: str = "Principal"):
-    """Exporta el árbol completo con estructura jerárquica."""
+    """Exports the complete tree with hierarchical structure."""
     session = state.get_session(tree_id)
     try:
         tree_data = session.avl.export_to_dict()
@@ -327,8 +329,8 @@ def history_travel(tree_id: str, index: int):
     session = state.get_session(tree_id)
     tree_state = session.history.get_state_at(index)
     
-    if not tree_state and tree_state != {}:  # tree state puede ser {}, pero None es un fallo
-         # Ojo que si el arbol está vacío se serializa a {}, no a None en nuestro model
+    if not tree_state and tree_state != {}:  # tree_state can be {}, but None is a failure
+         # Note: if the tree is empty it serializes to {}, not None in our model
         if tree_state is None:
             raise HTTPException(status_code=404, detail="Índice no encontrado")
         
@@ -337,8 +339,8 @@ def history_travel(tree_id: str, index: int):
         session.controller.load_topology_tree(session.avl, tree_state)
     _update_penalties(session.avl.root, session)
     
-    # Viajamos sin alterar futuro. Solo loggeamos a dónde fuimos al final del tape temporal
-    session.history.record_action(session.avl.export_to_dict(), f"Viaje en el Tiempo a index: {index}")
+    # We travel without altering the future. We only log where we went at the end of the timeline
+    session.history.record_action(session.avl.export_to_dict(), f"Time travel to index: {index}")
     
     return {"message": f"Se viajó en el tiempo exitosamente al evento {index}"}
 
@@ -382,7 +384,7 @@ def load_version(filename: str, tree_id: str = "Principal"):
         session.avl = AVL()
         session.controller.load_topology_tree(session.avl, tree_state)
         _update_penalties(session.avl.root, session)
-        session.history.record_action(session.avl.export_to_dict(), f"Versión Cargada: {filename}")
+        session.history.record_action(session.avl.export_to_dict(), f"Version Loaded: {filename}")
         return {"message": f"Versión {filename} cargada con éxito"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -400,7 +402,7 @@ def delete_lowest_profitability(tree_id: str = "Principal"):
         if not node: return
         
         prof = node.get_profitability()
-        # Evaluamos
+        # Evaluate
         is_better = False
         if not best_candidate:
             is_better = True

@@ -5,9 +5,9 @@ from models.traversals import Traversals
 
 class AVL(BST):
     """
-    Árbol AVL (Adelson-Velsky y Landis) que hereda de BST.
-    Garantiza una altura O(log n) mediante el rebalanceo automático.
-    Se utiliza FlightNode como estructura de datos.
+    AVL Tree (Adelson-Velsky and Landis) that inherits from BST.
+    Guarantees an O(log n) height by automatic rebalancing.
+    FlightNode is used as the data structure.
     """
     def __init__(self):
         super().__init__()
@@ -38,25 +38,25 @@ class AVL(BST):
 
     def insert(self, node: FlightNode):
         """
-        Sobrescribe el insert de BST para aplicar balanceo AVL opcionalmente.
+        Overrides BST's insert to optionally apply AVL balancing.
         """
         if self.root is None:
             self.root = node
             return
 
-        # 1. Inserción normal de BST
+        # 1. Normal BST insertion
         super()._insert(self.root, node)
         
-        # 2. Rebalanceo (si no estamos en modo estrés)
+        # 2. Rebalancing (if not in stress mode)
         if not self.stress_mode:
             self._rebalance_upwards(node)
         else:
-            # En modo estrés el árbol se deforma, pero igual debemos actualizar
-            # la altura del nodo modificado y sus ancestros para métricas futuras.
+            # In stress mode the tree deforms, but we still need to update
+            # the modified node's height and its ancestors for future metrics.
             self._update_heights_upwards(node)
             
     def export_to_dict(self):
-        """Exporta el árbol AVL completo a un diccionario (Punto 1.3)."""
+        """Exports the complete AVL tree to a dictionary (Point 1.3)."""
         if not self.root:
             return None
         return self._export_node_to_dict(self.root)
@@ -71,56 +71,56 @@ class AVL(BST):
         return data
 
     def _update_heights_upwards(self, node: FlightNode):
-        """Actualiza la propiedad height hacia arriba desde el nodo actual."""
+        """Updates the height property upwards from the current node."""
         current = node
         while current is not None:
             self._update_height(current)
             current = current.get_parent()
 
     def _rebalance_upwards(self, node: FlightNode):
-        """Recorre hacia arriba verificando el factor de balanceo y rotando."""
+        """Traverses upwards checking the balance factor and rotating."""
         current = node
         while current is not None:
             self._update_height(current)
             balance = self.get_balance_factor(current)
 
-            # Caso 1: Izquierda - Izquierda (LL)
+            # Case 1: Left - Left (LL)
             if balance > 1 and self.get_balance_factor(current.get_left_child()) >= 0:
                 current = Rotations.rotate_right(self, current)
             
-            # Caso 2: Derecha - Derecha (RR)
+            # Case 2: Right - Right (RR)
             elif balance < -1 and self.get_balance_factor(current.get_right_child()) <= 0:
                 current = Rotations.rotate_left(self, current)
             
-            # Caso 3: Izquierda - Derecha (LR)
+            # Case 3: Left - Right (LR)
             elif balance > 1 and self.get_balance_factor(current.get_left_child()) < 0:
                 current = Rotations.rotate_left_right(self, current)
             
-            # Caso 4: Derecha - Izquierda (RL)
+            # Case 4: Right - Left (RL)
             elif balance < -1 and self.get_balance_factor(current.get_right_child()) > 0:
                 current = Rotations.rotate_right_left(self, current)
                 
             current = current.get_parent()
 
     def search(self, value):
-        """Método de búsqueda de un nodo con base en su valor"""
+        """Method to search for a node based on its value"""
         if self.root is None:
-            raise Exception("El árbol está vacío.")
+            raise Exception("The tree is empty.")
         else:
             return self.__search(self.root, value)
 
     def __search(self, currentRoot, value):
-        """Método para la búsqueda de manera recursiva"""
-        # Si el valor coincide con el nodo actual, retornar el nodo
+        """Method to search recursively"""
+        # If the value matches the current node, return the node
         if value == currentRoot.get_value():
             return currentRoot
-        # Si el valor es mayor, buscar en el subárbol derecho
+        # If the value is greater, search in the right subtree
         if value > currentRoot.get_value():
             if currentRoot.get_right_child() is None:
                 return None
             else:
                 return self.__search(currentRoot.get_right_child(), value)
-        # Si el valor es menor, buscar en el subárbol izquierdo
+        # If the value is smaller, search in the left subtree
         else:
             if currentRoot.get_left_child() is None:
                 return None
@@ -128,27 +128,27 @@ class AVL(BST):
                 return self.__search(currentRoot.get_left_child(), value)
 
     def delete(self, value):
-        """Método para eliminar un nodo. Se deben considerar los 3 casos: no hoja, no con un hijo y nodo con 2 hijos"""
+        """Method to delete a node. The 3 cases must be considered: leaf node, node with 1 child, and node with 2 children"""
         
-        # Verificar si el árbol tiene al menos la raíz
+        # Check if the tree has at least the root
         if self.root is None:
-            print("El árbol está vacío.")
+            print("The tree is empty.")
         else:
-            # Buscar el nodo con el valor
+            # Search for the node with the value
             node = self.search(value)
             parent = node.get_parent() if node else None
-            # Si no se encuentra, mostrar mensaje de error
+            # If not found, show error message
             if node is None:
-                print(f"El nodo con valor {value} no existe en el árbol")
+                print(f"The node with value {value} does not exist in the tree")
             else:
-                # Eliminar el nodo
+                # Delete the node
                 self.__delete(node)
-            # Rebalancear hacia arriba desde el padre del nodo eliminado
+            # Rebalance upwards from the deleted node's parent
             if parent:
                 self._rebalance_upwards(parent)
 
     def __delete(self, node):
-        """Método para identificar el caso y eliminar el nodo"""
+        """Method to identify the case and delete the node"""
         # Identificar el caso de eliminación
         deletionCase = self.__identifyDeletionCase(node)
         # Ejecutar el caso correspondiente
@@ -160,12 +160,12 @@ class AVL(BST):
             self.__deleteNodeWithTwoChildren(node)
 
     def __deleteNodeWithTwoChildren(self, node):
-        """Método para eliminar un nodo que tiene dos hijos (caso 3)"""
-        # Obtener el predecesor inorden
+        """Method to delete a node with two children (case 3)"""
+        # Get the inorder predecessor
         predecessor = self.__getPredecessor(node)
-        # Copiar el valor del predecesor al nodo actual
+        # Copy the predecessor's value to the current node
         node.set_value(predecessor.get_value())
-        # Identificar el caso del predecesor y eliminarlo
+        # Identify the predecessor's case and delete it
         predecessorCase = self.__identifyDeletionCase(predecessor)
         if predecessorCase == 1:
             self.__deleteLeafNode(predecessor)
@@ -173,7 +173,7 @@ class AVL(BST):
             self.__deleteNodeWithOneChild(predecessor)
 
     def __getPredecessor(self, node):
-        """Método para obtener el predecesor inorden de un nodo. El predecesor es el mayor valor del subárbol izquierdo"""
+        """Method to get the inorder predecessor of a node. The predecessor is the greatest value of the left subtree"""
         # Iniciar desde el hijo izquierdo
         current = node.get_left_child()
         # Avanzar hacia la derecha hasta el mayor valor
@@ -182,8 +182,8 @@ class AVL(BST):
         return current
 
     def __deleteNodeWithOneChild(self, node):
-        """Método para eliminar un nodo que tiene un solo hijo (caso 2)"""
-        # Obtener el hijo del nodo
+        """Method to delete a node with one child (case 2)"""
+        # Get the node's child
         if node.get_left_child() is not None:
             childNode = node.get_left_child()
         else:
@@ -210,8 +210,8 @@ class AVL(BST):
         node.set_parent(None)
 
     def __deleteLeafNode(self, node):
-        """Método para eliminar un nodo hoja (caso 1)"""
-        # Si es la raíz, vaciar el árbol
+        """Method to delete a leaf node (case 1)"""
+        # If it is the root, empty the tree
         if node.get_value() == self.root.get_value():
             self.root = None
         else:
@@ -224,7 +224,7 @@ class AVL(BST):
             node.set_parent(None)
 
     def __identifyDeletionCase(self, node):
-        """Identificar los casos de eliminación: caso 1 cuando es nodo hoja, caso 2 cuando solo tiene un hijo, caso 3 cuando tiene los dos hijos"""
+        """Identify the deletion cases: case 1 when it's a leaf node, case 2 when it has only one child, case 3 when it has two children"""
         # Asumir caso 2 inicialmente
         deletionCase = 2
         # Verificar si es hoja (caso 1)
@@ -251,14 +251,14 @@ class AVL(BST):
         return Traversals.posOrderTraversal(self.root)
 
     def calculateHeight(self, node):
-        """Método para calcular la altura de un nodo"""
+        """Method to calculate the height of a node"""
         if node is None:
             return -1
         else:
             return self.__calculateHeight(node)
 
     def __calculateHeight(self, currentRoot):
-        """Método recursivo para calcular la altura de un nodo"""
+        """Recursive method to calculate a node's height"""
         if currentRoot is None:
             return -1
         else:
@@ -271,14 +271,14 @@ class AVL(BST):
             return 1 + maxHeight
 
     def print_tree(self):
-        """Método para dibujar el árbol en forma de árbol"""
+        """Method to draw the tree as a tree"""
         if self.root is None:
             print("El árbol está vacío.")
         else:
             self.__print_tree(self.root, "", True)
 
     def __print_tree(self, node=None, prefix="", is_left=True):
-        """Método para imprimir el árbol AVL"""
+        """Method to print the AVL tree"""
         if node is not None:
             # Imprimir subárbol derecho primero (para que aparezca arriba)
             if node.get_right_child():
